@@ -289,7 +289,7 @@ void HttpListenerList::removeVHostMappings( HttpVHost * pVHost)
     }
 }
 
-int HttpListenerList::writeRTReport( int fd )
+int HttpListenerList::writeRTReport( int format, int fd )
 {
     return 0;
 }

@@ -52,7 +52,7 @@ public:
     void onTimer30Secs();
     void offsetChroot( const char * pChroot, int len );
     int  writeStatusReport( int fd ) const;
-    int  writeRTReport( int fd ) const;
+    int  writeRTReport( int format, int fd ) const;
     void release_objects();
     static void incRef( HttpVHost * pHost );
     static void decRef( HttpVHost * pHost );

@@ -449,7 +449,7 @@ void ExtWorker::onTimer()
 
 #include <http/httpvhost.h>
 #include <stdio.h>
-int ExtWorker::generateRTReport( int fd, const char * pTypeName )
+int ExtWorker::generateRTReport( int format, int fd, const char * pTypeName )
 {
     char * p;
     char achBuf[4096];
@@ -463,16 +463,34 @@ int ExtWorker::generateRTReport( int fd, const char * pTypeName )
         ( m_connPool.getTotalConns() > 0 )&&( m_iState != ST_NOTSTARTED )) 
     
     {
-        p += safe_snprintf( p, &achBuf[4096] - p,
-                    "EXTAPP [%s] [%s] [%s]: CMAXCONN: %d, EMAXCONN: %d, "
-                    "POOL_SIZE: %d, INUSE_CONN: %d, "
-                    "IDLE_CONN: %d, WAITQUE_DEPTH: %d, "
-                    "REQ_PER_SEC: %d, TOT_REQS: %d\n",
-                    pTypeName, (pVHost)?pVHost->getName():"", m_pConfig->getName(),
-                    m_pConfig->getMaxConns(), m_connPool.getMaxConns(),
-                    m_connPool.getTotalConns(), inUseConn,
-                    m_connPool.getFreeConns(), m_reqQueue.size(),
-                    m_reqStats.getRPS(), m_reqStats.getTotal() );
+
+        if(format == 0)
+        {
+                p += safe_snprintf( p, &achBuf[4096] - p,
+                "EXTAPP [%s] [%s] [%s]: CMAXCONN: %d, EMAXCONN: %d, "
+                "POOL_SIZE: %d, INUSE_CONN: %d, "
+                "IDLE_CONN: %d, WAITQUE_DEPTH: %d, "
+                "REQ_PER_SEC: %d, TOT_REQS: %d\n",
+                pTypeName, (pVHost)?pVHost->getName():"", m_pConfig->getName(),
+                m_pConfig->getMaxConns(), m_connPool.getMaxConns(),
+                m_connPool.getTotalConns(), inUseConn,
+                m_connPool.getFreeConns(), m_reqQueue.size(),
+                m_reqStats.getRPS(), m_reqStats.getTotal() );
+        }
+        else if(format == 1)
+        {
+                p += safe_snprintf( p, &achBuf[4096] - p,
+                "{\"TYPE\":\"[%s]\",\"VHOST\":\"[%s]\",\"NAME\":\"[%s]\",\"CMAXCONN\":%d,\"EMAXCONN\":%d,"
+                "\"POOL_SIZE\": %d,\"INUSE_CONN\":%d,"
+                "\"IDLE_CONN\":%d,\"WAITQUE_DEPTH\":%d,"
+                "\"REQ_PER_SEC\":%d,\"TOT_REQS\":%d}\n",
+                pTypeName, (pVHost)?pVHost->getName():"", m_pConfig->getName(),
+                m_pConfig->getMaxConns(), m_connPool.getMaxConns(),
+                m_connPool.getTotalConns(), inUseConn,
+                m_connPool.getFreeConns(), m_reqQueue.size(),
+                m_reqStats.getRPS(), m_reqStats.getTotal() );
+        }
+
         write( fd, achBuf, p - achBuf );
     }
     m_reqStats.reset();

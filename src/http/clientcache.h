@@ -70,7 +70,7 @@ public:
     
     ClientInfo * getClientInfo( struct sockaddr * pPeer );
 
-    int generateBlockedIPReport( int fd );
+    int generateBlockedIPReport( int format, int fd );
     
 };
 

@@ -43,7 +43,7 @@ public:
     void clear();
     void onTimer();
     void runOnStartUp();
-    int generateRTReport( int fd, int type );
+    int generateRTReport( int format, int fd, int type );
     
 };
 #define EA_CGID     0
@@ -70,7 +70,7 @@ public:
     static void runOnStartUp();
     static void init();
     static void shutdown();
-    static int generateRTReport( int fd );
+    static int generateRTReport( int format, int fd );
 };
 
 class PidSimpleList;

@@ -172,25 +172,32 @@ void ExtAppSubRegistry::clear()
     m_pOldWorkers->release_objects();
 }
 
-int ExtAppSubRegistry::generateRTReport( int fd, int type )
+int ExtAppSubRegistry::generateRTReport( int format, int fd, int type )
 {
     static const char * s_pTypeName[] =
     {
         "CGI",
-        "FastCGI",
-        "Proxy",
-        "Servlet",
+        "FASTCGI",
+        "PROXY",
+        "SERVLET",
         "LSAPI",
-        "Logger"
+        "LOGGER"
     };
-        
+
+    if( format == 1)
+        write( fd, ",\"EXTAPP\":[\n", 11 );
+
     ExtAppMap::iterator iter;
     for( iter = m_pRegistry->begin();
         iter != m_pRegistry->end();
         iter = m_pRegistry->next( iter ) )
     {
-        iter.second()->generateRTReport( fd, s_pTypeName[ type ] );
+        iter.second()->generateRTReport( format, fd, s_pTypeName[ type ] );
     }
+
+    if( format == 1)
+        write( fd, "]\n", 2 );
+
     return 0;
 }
 
@@ -336,13 +343,18 @@ void ExtAppRegistry::runOnStartUp()
 }
 
 
-int ExtAppRegistry::generateRTReport( int fd )
+int ExtAppRegistry::generateRTReport(int format, int fd )
 {
-    for( int i = 0; i < EA_NUM_APP; ++i )
+    char * p;
+    char achBuf[4096];
+    p = achBuf;
+
+    for( int i = 0; i < EA_NUM_APP; ++i;)
     {
         if ( i != EA_LOGGER )
-            s_registry[i]()->generateRTReport( fd, i );
+            s_registry[i]()->generateRTReport(format, fd, i );
     }
+
     return 0;
 }
 

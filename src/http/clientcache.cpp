@@ -169,7 +169,7 @@ void ClientCache::clean()
     clean( &m_v6 );
 }
 
-int ClientCache::writeBlockedIP( AutoBuf * pBuf, Cache * pCache )
+int ClientCache::writeBlockedIP( int format, AutoBuf * pBuf, Cache * pCache )
 {
     ClientInfo * pInfo;
     Cache::iterator iter;
@@ -177,14 +177,25 @@ int ClientCache::writeBlockedIP( AutoBuf * pBuf, Cache * pCache )
     char *p = achBuf;
     char * pEnd = p + sizeof( achBuf );
     int len;
-    for( iter = pCache->begin(); iter != pCache->end(); iter = pCache->next( iter ))
+    for( iter = pCache->begin(); iter != pCache->end(); )
     {
         pInfo = iter.second();
         if (( pInfo )&& (pInfo->getAccess() == AC_BLOCK ))
         {
+           if( format == 1)
+                *p++ = '"';
+
             memmove( p, pInfo->getAddrString(), pInfo->getAddrStrLen() );
             p += pInfo->getAddrStrLen();
-            *p++ = ',';
+
+            if( format == 1)
+                *p++ = '"';
+
+            iter = pCache->next( iter )
+
+            if( iter != pCache->end() )
+                *p++ = ',';
+
             if ( pEnd - p < 1024 )
             {
                 len = p - achBuf;
@@ -201,12 +212,27 @@ int ClientCache::writeBlockedIP( AutoBuf * pBuf, Cache * pCache )
         return 0;
 }
 
-int ClientCache::generateBlockedIPReport( int fd )
+int ClientCache::generateBlockedIPReport( int format, int fd )
 {
     AutoBuf buf(1024);
-    buf.append( "BLOCKED_IP: ", 12 );
-    writeBlockedIP( &buf, &m_v4 );
-    writeBlockedIP( &buf, &m_v6 );
+
+    if( format == 0 )
+    {
+        buf.append( "BLOCKED_IP: ", 12 );
+        writeBlockedIP( &buf, &m_v4 );
+        writeBlockedIP( &buf, &m_v6 );
+    }
+    else if( format == 1 )
+    {
+         buf.append( ",\"BLOCKED_IP\":[\n", 14 );
+         buf.append( "\"IPV4\":[\n", 9 );
+         writeBlockedIP( format, &buf, &m_v4 );
+         buf.append( "],\n", 3 );
+          buf.append( "\"IPV6\":[\n", 9 );
+         writeBlockedIP( format, &buf, &m_v6 );
+         buf.append( "]\n", 2 );
+         buf.append( "]\n", 2 );
+    }
     buf.append( '\n' );
     write( fd, buf.begin(), buf.size() );
     return 0;

@@ -188,8 +188,8 @@ private:
     int gracefulShutdown();
     int generateStatusReport();
     void setRTReportName( int proc );
-    int generateRTReport();
-    int generateProcessReport( int fd );
+    int generateRTReport( int format );
+    int generateProcessReport( int format, int fd );
     HttpListener* newTcpListener( const char * pName, const char * pAddr );
 
     HttpListener * addListener( const char * pName, const char * pAddr );
@@ -374,7 +374,7 @@ int HttpServerImpl::generateStatusReport()
     return 0;
 }
 
-int generateConnReport( int fd  )
+int   generateConnReport( int format, int fd  )
 {
     ConnLimitCtrl * pCtrl = HttpGlobals::getConnLimitCtrl();
     char achBuf[4096];
@@ -384,20 +384,42 @@ int generateConnReport( int fd  )
     {
         HttpGlobals::s_iIdleConns = pCtrl->getMaxConns() - pCtrl->availConn();
     }
-    int n = safe_snprintf( achBuf, 4096,
-                "BPS_IN: %ld, BPS_OUT: %ld, "
-                "SSL_BPS_IN: %ld, SSL_BPS_OUT: %ld\n"
-                "MAXCONN: %d, MAXSSL_CONN: %d, PLAINCONN: %d, "
-                "AVAILCONN: %d, IDLECONN: %d, SSLCONN: %d, AVAILSSL: %d\n"
-                "REQ_RATE []: REQ_PROCESSING: %d, REQ_PER_SEC: %d, TOT_REQS: %d\n",
-            HttpGlobals::s_lBytesRead/1024, HttpGlobals::s_lBytesWritten/1024,
-            HttpGlobals::s_lSSLBytesRead/1024, HttpGlobals::s_lSSLBytesWritten/1024,
-            pCtrl->getMaxConns(), pCtrl->getMaxSSLConns(),
-            pCtrl->getMaxConns() - SSLConns - pCtrl->availConn(),
-            pCtrl->availConn(), HttpGlobals::s_iIdleConns,
-            SSLConns, pCtrl->availSSLConn(),
-            pCtrl->getMaxConns() - pCtrl->availConn() - HttpGlobals::s_iIdleConns,
-            HttpGlobals::s_reqStats.getRPS(), HttpGlobals::s_reqStats.getTotal() );
+
+    if( format == 0 )
+    {
+        int n = safe_snprintf( achBuf, 4096,
+                    "BPS_IN: %ld, BPS_OUT: %ld, "
+                    "SSL_BPS_IN: %ld, SSL_BPS_OUT: %ld\n"
+                    "MAXCONN: %d, MAXSSL_CONN: %d, PLAINCONN: %d, "
+                    "AVAILCONN: %d, IDLECONN: %d, SSLCONN: %d, AVAILSSL: %d\n"
+                    "REQ_RATE []: REQ_PROCESSING: %d, REQ_PER_SEC: %d, TOT_REQS: %d\n",
+                HttpGlobals::s_lBytesRead/1024, HttpGlobals::s_lBytesWritten/1024,
+                HttpGlobals::s_lSSLBytesRead/1024, HttpGlobals::s_lSSLBytesWritten/1024,
+                pCtrl->getMaxConns(), pCtrl->getMaxSSLConns(),
+                pCtrl->getMaxConns() - SSLConns - pCtrl->availConn(),
+                pCtrl->availConn(), HttpGlobals::s_iIdleConns,
+                SSLConns, pCtrl->availSSLConn(),
+                pCtrl->getMaxConns() - pCtrl->availConn() - HttpGlobals::s_iIdleConns,
+                HttpGlobals::s_reqStats.getRPS(), HttpGlobals::s_reqStats.getTotal() );
+    }
+    else if( format == 1)
+    {
+         int n = safe_snprintf( achBuf, 4096,
+                     ",\"GLOBAL\":{\"BPS_IN\":%ld,\"BPS_OUT\":%ld,"
+                     "\"SSL_BPS_IN\":%ld,\"SSL_BPS_OUT: %ld,\n"
+                     "\"MAXCONN\":%d,\"MAXSSL_CONN\":%d,\"PLAINCONN\":%d,"
+                     "\"AVAILCONN\":%d,\"IDLECONN\":%d,\"SSLCONN\":%d,\"AVAILSSL\":%d,"
+                     "\"REQ_PROCESSING\":%d,\"REQ_PER_SEC\":%d,\"TOT_REQS\":%d}\n",
+                 HttpGlobals::s_lBytesRead/1024, HttpGlobals::s_lBytesWritten/1024,
+                 HttpGlobals::s_lSSLBytesRead/1024, HttpGlobals::s_lSSLBytesWritten/1024,
+                 pCtrl->getMaxConns(), pCtrl->getMaxSSLConns(),
+                 pCtrl->getMaxConns() - SSLConns - pCtrl->availConn(),
+                 pCtrl->availConn(), HttpGlobals::s_iIdleConns,
+                 SSLConns, pCtrl->availSSLConn(),
+                 pCtrl->getMaxConns() - pCtrl->availConn() - HttpGlobals::s_iIdleConns,
+                 HttpGlobals::s_reqStats.getRPS(), HttpGlobals::s_reqStats.getTotal() );
+    }
+
     write( fd, achBuf, n );
 
     HttpGlobals::s_lBytesRead = HttpGlobals::s_lBytesWritten
@@ -406,7 +428,7 @@ int generateConnReport( int fd  )
     return 0;
 }
 
-int HttpServerImpl::generateProcessReport( int fd )
+int HttpServerImpl::generateProcessReport( int format, int fd )
 {
     char achBuf[4096];
     long delta = time(NULL) - m_lStartTime;
@@ -419,14 +441,30 @@ int HttpServerImpl::generateProcessReport( int fd )
     hours = delta % 24;
     days = delta / 24;
     char * p = achBuf;
-    p += safe_snprintf( p, &achBuf[4096] - p, "VERSION: LiteSpeed Web Server/%s/%s\n",
-                    "Open",
-                    PACKAGE_VERSION  );
-    p += safe_snprintf( p, &achBuf[4096] - p, "UPTIME:" );
-    
-    if ( days )
-        p += safe_snprintf( p, &achBuf[4096] - p, " %ld day%s", days, ( days > 1 )?"s":"" );
-    p += safe_snprintf( p, &achBuf[4096] - p, " %02d:%02d:%02d\n", hours, mins, seconds );
+
+    if( format == 0)
+    {
+        p += safe_snprintf( p, &achBuf[4096] - p, "VERSION: LiteSpeed Web Server/%s/%s\n",
+                        "Open",
+                        PACKAGE_VERSION  );
+        p += safe_snprintf( p, &achBuf[4096] - p, "UPTIME:" );
+
+        if ( days )
+            p += safe_snprintf( p, &achBuf[4096] - p, " %ld day%s", days, ( days > 1 )?"s":"" );
+        p += safe_snprintf( p, &achBuf[4096] - p, " %02d:%02d:%02d\n", hours, mins, seconds );
+    }
+    else if( format == 1)
+    {
+        p += safe_snprintf( p, &achBuf[4096] - p, "\"PRODUCT\":\"LiteSpeed Web Server\",\"EDITION\":\"%s\",\"VERSION\":\"%s\",",
+                        "Open",
+                        PACKAGE_VERSION  );
+        p += safe_snprintf( p, &achBuf[4096] - p, "\"UPTIME\":" );
+
+        if ( days )
+            p += safe_snprintf( p, &achBuf[4096] - p, "\"%ld day%s", days, ( days > 1 )?"s":"" );
+        p += safe_snprintf( p, &achBuf[4096] - p, " %02d:%02d:%02d\",\n", hours, mins, seconds );
+    }
+
     write( fd, achBuf, p - achBuf );
     return 0;
     
@@ -443,7 +481,7 @@ void HttpServerImpl::setRTReportName( int proc )
 }
 
 
-int HttpServerImpl::generateRTReport()
+int HttpServerImpl::generateRTReport( int format )
 {
     LOG4CXX_NS::Appender * pAppender = LOG4CXX_NS::Appender::getAppender(
                         m_sRTReportFile.c_str() );
@@ -453,20 +491,28 @@ int HttpServerImpl::generateRTReport()
         LOG_ERR(( "Failed to open the real time report!" ));
         return -1;
     }
+
+    if( format == 1)
+        pAppender->append( "{\n", 2 );
+
     int ret;
-    ret = generateProcessReport( pAppender->getfd() );
-    ret = generateConnReport( pAppender->getfd() );
-    ret = m_listeners.writeRTReport( pAppender->getfd() );
+    ret = generateProcessReport( format, pAppender->getfd() );
+    ret = generateConnReport( format, pAppender->getfd() );
+    ret = m_listeners.writeRTReport( format, pAppender->getfd() );
     if ( !ret )
-        ret = m_vhosts.writeRTReport( pAppender->getfd() );
+        ret = m_vhosts.writeRTReport( format, pAppender->getfd() );
     if ( ret )
     {
         LOG_ERR(( "Failed to generate the real time report!" ));
     }
-    ret = ExtAppRegistry::generateRTReport( pAppender->getfd() );
-    ret = HttpGlobals::getClientCache()->generateBlockedIPReport( pAppender->getfd() );
-    
-    pAppender->append( "EOF\n", 4 );
+    ret = ExtAppRegistry::generateRTReport( format, pAppender->getfd() );
+    ret = HttpGlobals::getClientCache()->generateBlockedIPReport( format, pAppender->getfd() );
+
+    if( format == 1)
+        pAppender->append( "}\n", 2 );
+    else if( format == 0)
+        pAppender->append( "EOF\n", 4 );
+
     pAppender->close();
     return 0;
 }
@@ -735,7 +781,7 @@ void HttpServerImpl::onTimerSecond()
     HttpGlobals::getClientCache()->onTimer();
     m_vhosts.onTimer();
     if ( m_lStartTime > 0 )
-        generateRTReport();
+        generateRTReport( 1 ); //0 = normal, 1 = json
 }
 
 void HttpServerImpl::onTimer10Secs()
