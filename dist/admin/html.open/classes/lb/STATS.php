@@ -56,15 +56,10 @@ class STATS {
 	function parse_litespeed() {
 
 		if (strpos($_SERVER['LS_PLATFORM'], 'freebsd') !== FALSE) {
+            $content = "";
 			for ( $i = 1 ; $i <= $this->processes ; $i++ )
 			{
-				if ( $i > 1 ) {
-					$content .= file_get_contents("{$this->report_path}.rtreport.{$i}");
-				}
-				else {
-					$content = file_get_contents("{$this->report_path}.rtreport");
-				}
-				
+				$content .= file_get_contents("{$this->report_path}.rtreport.{$i}");
 			}
 		}
 		else {
