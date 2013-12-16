@@ -91,7 +91,7 @@ class HttpVHostMapImpl: public HashStringMap<HttpVHost *>
                             iter.second()->getReqStats()->getRPS(),
                             iter.second()->getReqStats()->getTotal() );
             }
-            
+
             iter.second()->getReqStats()->reset();
             if ( ::write( fd, achBuf, len ) != len )
                 return -1;

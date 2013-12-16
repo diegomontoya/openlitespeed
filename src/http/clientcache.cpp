@@ -204,6 +204,8 @@ int ClientCache::writeBlockedIP( int format, AutoBuf * pBuf, Cache * pCache )
                 p = achBuf;
             }
         }
+        else
+            iter = pCache->next( iter );
     }
     len = p - achBuf;
     if ( len > 0 )
@@ -228,7 +230,7 @@ int ClientCache::generateBlockedIPReport( int format, int fd )
          buf.append( "\"IPV4\":[\n", 9 );
          writeBlockedIP( format, &buf, &m_v4 );
          buf.append( "],\n", 3 );
-          buf.append( "\"IPV6\":[\n", 9 );
+         buf.append( "\"IPV6\":[\n", 9 );
          writeBlockedIP( format, &buf, &m_v6 );
          buf.append( "]\n", 2 );
          buf.append( "]\n", 2 );

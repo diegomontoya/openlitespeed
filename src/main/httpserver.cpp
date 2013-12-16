@@ -407,7 +407,7 @@ int   generateConnReport( int format, int fd  )
     {
          n = safe_snprintf( achBuf, 4096,
                      ",\"GLOBAL\":{\"BPS_IN\":%ld,\"BPS_OUT\":%ld,"
-                     "\"SSL_BPS_IN\":%ld,\"SSL_BPS_OUT: %ld,\n"
+                     "\"SSL_BPS_IN\":%ld,\"SSL_BPS_OUT\": %ld,"
                      "\"MAXCONN\":%d,\"MAXSSL_CONN\":%d,\"PLAINCONN\":%d,"
                      "\"AVAILCONN\":%d,\"IDLECONN\":%d,\"SSLCONN\":%d,\"AVAILSSL\":%d,"
                      "\"REQ_PROCESSING\":%d,\"REQ_PER_SEC\":%d,\"TOT_REQS\":%d}\n",
