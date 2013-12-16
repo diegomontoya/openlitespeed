@@ -184,7 +184,7 @@ int ExtAppSubRegistry::generateRTReport( int format, int fd, int type )
         "SERVLET",
         "LSAPI",
         "LOGGER"
-    }; v
+    };
 
     if( format == 1)
         write( fd, ",\"EXTAPP\":[\n", 11 );
@@ -351,7 +351,7 @@ int ExtAppRegistry::generateRTReport(int format, int fd )
     char achBuf[4096];
     p = achBuf;
 
-    for( int i = 0; i < EA_NUM_APP; ++i;)
+    for( int i = 0; i < EA_NUM_APP; ++i)
     {
         if ( i != EA_LOGGER )
             s_registry[i]()->generateRTReport(format, fd, i );
