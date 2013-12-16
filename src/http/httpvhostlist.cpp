@@ -69,7 +69,7 @@ class HttpVHostMapImpl: public HashStringMap<HttpVHost *>
         if( format == 1 )
             write( fd, ",\"REQUEST\":[\n", 13 );
 
-        for( iter = begin(); iter != iterEnd; iter = next( iter ) )
+        for( iter = begin(); iter != iterEnd; )
         {
             iter.second()->getReqStats()->finalizeRpt();
 
@@ -99,7 +99,7 @@ class HttpVHostMapImpl: public HashStringMap<HttpVHost *>
             iter = next( iter );
 
             if( format == 1 && iter != iterEnd )
-            				write( fd, ",", 1);
+                write( fd, ",\n", 2);
         }
 
         if( format == 1 )

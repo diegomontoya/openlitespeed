@@ -456,10 +456,10 @@ int HttpServerImpl::generateProcessReport( int format, int fd )
     }
     else if( format == 1)
     {
-        p += safe_snprintf( p, &achBuf[4096] - p, "\"PRODUCT\":\"LiteSpeed Web Server\",\"EDITION\":\"%s\",\"VERSION\":\"%s\",",
+        p += safe_snprintf( p, &achBuf[4096] - p, "\"PRODUCT\":{\"NAME\":\"LiteSpeed Web Server\",\"EDITION\":\"%s\",\"VERSION\":\"%s\"},",
                         "Open",
                         PACKAGE_VERSION  );
-        p += safe_snprintf( p, &achBuf[4096] - p, "\"UPTIME\":" );
+        p += safe_snprintf( p, &achBuf[4096] - p, "\n\",UPTIME\":" );
 
         if ( days )
             p += safe_snprintf( p, &achBuf[4096] - p, "\"%ld day%s", days, ( days > 1 )?"s":"" );
