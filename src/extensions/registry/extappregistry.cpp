@@ -189,9 +189,14 @@ int ExtAppSubRegistry::generateRTReport( int format, int fd, int type )
     ExtAppMap::iterator iter;
     for( iter = m_pRegistry->begin();
         iter != m_pRegistry->end();
-        iter = m_pRegistry->next( iter ) )
+        )
     {
         iter.second()->generateRTReport( format, fd, s_pTypeName[ type ] );
+
+        iter = m_pRegistry->next( iter );
+
+        if( format == 1 && iter != m_pRegistry->end() )
+            write( fd, ",", 1);
     }
 
     return 0;
@@ -342,7 +347,7 @@ void ExtAppRegistry::runOnStartUp()
 int ExtAppRegistry::generateRTReport(int format, int fd )
 {
     if( format == 1)
-        write( fd, ",\"EXTAPP\":[\n", 11 );
+        write( fd, ",\"EXTAPP\":[\n", 12 );
 
     for( int i = 0; i < EA_NUM_APP; ++i)
     {

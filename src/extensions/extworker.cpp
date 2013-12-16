@@ -480,7 +480,7 @@ int ExtWorker::generateRTReport( int format, int fd, const char * pTypeName )
         else if(format == 1)
         {
                 p += safe_snprintf( p, &achBuf[4096] - p,
-                "{\"TYPE\":\"[%s]\",\"VHOST\":\"[%s]\",\"NAME\":\"[%s]\",\"CMAX\":%d,\"EMAX\":%d,"
+                "{\"TYPE\":\"%s\",\"VHOST\":\"%s\",\"NAME\":\"%s\",\"CMAX\":%d,\"EMAX\":%d,"
                 "\"POOL_SIZE\": %d,\"ACTIVE\":%d,"
                 "\"IDLE\":%d,\"QUEUE_SIZE\":%d,"
                 "\"REQ_PER_SEC\":%d,\"TOT_REQ\":%d}\n",
