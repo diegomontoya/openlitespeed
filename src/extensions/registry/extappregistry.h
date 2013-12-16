@@ -70,7 +70,7 @@ public:
     static void runOnStartUp();
     static void init();
     static void shutdown();
-    static int generateRTReport( int format, int wroteJsonExt int fd );
+    static int generateRTReport( int format, int fd );
 };
 
 class PidSimpleList;

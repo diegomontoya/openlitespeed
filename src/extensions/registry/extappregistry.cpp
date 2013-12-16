@@ -174,7 +174,7 @@ void ExtAppSubRegistry::clear()
 
 #include <unistd.h>
 #include <stdio.h>
-int ExtAppSubRegistry::generateRTReport( int format, int wroteJsonExt int fd, int type )
+int ExtAppSubRegistry::generateRTReport( int format, int wroteJsonExt, int fd, int type )
 {
     static const char * s_pTypeName[] =
     {
@@ -188,7 +188,7 @@ int ExtAppSubRegistry::generateRTReport( int format, int wroteJsonExt int fd, in
 
     ExtAppMap::iterator iter;
     int tmpJsonExt = 0;
-    for( iter = m_pRegistry->begin(), int;
+    for( iter = m_pRegistry->begin();
         iter != m_pRegistry->end();
          iter = m_pRegistry->next( iter )
         )
