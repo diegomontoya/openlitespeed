@@ -452,18 +452,14 @@ int HttpServerImpl::generateProcessReport( int format, int fd )
 
         if ( days )
             p += safe_snprintf( p, &achBuf[4096] - p, " %ld day%s", days, ( days > 1 )?"s ":"" );
-        p += safe_snprintf( p, &achBuf[4096] - p, "%02d:%02d:%02d\n", hours, mins, seconds );
+        p += safe_snprintf( p, &achBuf[4096] - p, " %02d:%02d:%02d\n", hours, mins, seconds );
     }
     else if( format == 1)
     {
         p += safe_snprintf( p, &achBuf[4096] - p, "\"PRODUCT\":{\"NAME\":\"LiteSpeed Web Server\",\"EDITION\":\"%s\",\"VERSION\":\"%s\"}\n",
                         "Open",
                         PACKAGE_VERSION  );
-        p += safe_snprintf( p, &achBuf[4096] - p, ",\"UPTIME\":\"" );
-
-        if ( days )
-            p += safe_snprintf( p, &achBuf[4096] - p, "%ld day%s", days, ( days > 1 )?"s":"" );
-        p += safe_snprintf( p, &achBuf[4096] - p, " %02d:%02d:%02d\"\n", hours, mins, seconds );
+        p += safe_snprintf( p, &achBuf[4096] - p, ",\"UPTIME\":{\"DAYS\":%ld,\"HRS\":%02d,\"MINS\":%02d,\"SECS\":%02d}\n", days, hours, mins, seconds );
     }
 
     write( fd, achBuf, p - achBuf );
