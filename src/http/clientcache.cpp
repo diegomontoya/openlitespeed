@@ -224,7 +224,7 @@ int ClientCache::generateBlockedIPReport( int format, int fd )
     }
     else if( format == 1 )
     {
-         buf.append( ",\"BLOCKED_IP\":[\n", 14 );
+         buf.append( ",\"BLOCKED_IP\":[\n", 16 );
          buf.append( "\"IPV4\":[\n", 9 );
          writeBlockedIP( format, &buf, &m_v4 );
          buf.append( "],\n", 3 );

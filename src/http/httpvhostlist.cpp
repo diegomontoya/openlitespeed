@@ -67,7 +67,7 @@ class HttpVHostMapImpl: public HashStringMap<HttpVHost *>
         char achBuf[1024];
 
         if( format == 1 )
-            write( fd, ",\"REQUEST\":[\n", 12 );
+            write( fd, ",\"REQUEST\":[\n", 13 );
 
         for( iter = begin(); iter != iterEnd; iter = next( iter ) )
         {
