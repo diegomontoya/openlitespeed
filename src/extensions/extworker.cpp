@@ -449,7 +449,7 @@ void ExtWorker::onTimer()
 
 #include <http/httpvhost.h>
 #include <stdio.h>
-int ExtWorker::generateRTReport( int format, int fd, const char * pTypeName )
+int ExtWorker::generateRTReport( int format, int wroteJsonExt, int fd, const char * pTypeName )
 {
     char * p;
     char achBuf[4096];
@@ -460,7 +460,7 @@ int ExtWorker::generateRTReport( int format, int fd, const char * pTypeName )
     int inUseConn = m_connPool.getTotalConns() - m_connPool.getFreeConns();
     const HttpVHost * pVHost = m_pConfig->getVHost();
     if (( !pVHost || strcmp( pVHost->getName(), DEFAULT_ADMIN_SERVER_NAME) != 0 )&&
-        ( m_connPool.getTotalConns() > 0 )&&( m_iState != ST_NOTSTARTED )) 
+        ( m_connPool.getTotalConns() >= 0 )&&( m_iState != ST_NOTSTARTED ))
     
     {
 
@@ -480,15 +480,18 @@ int ExtWorker::generateRTReport( int format, int fd, const char * pTypeName )
         else if(format == 1)
         {
                 p += safe_snprintf( p, &achBuf[4096] - p,
-                "{\"TYPE\":\"%s\",\"VHOST\":\"%s\",\"NAME\":\"%s\",\"CMAX\":%d,\"EMAX\":%d,"
+                "%s{\"TYPE\":\"%s\",\"VHOST\":\"%s\",\"NAME\":\"%s\",\"CMAX\":%d,\"EMAX\":%d,"
                 "\"POOL_SIZE\": %d,\"ACTIVE\":%d,"
                 "\"IDLE\":%d,\"QUEUE_SIZE\":%d,"
                 "\"REQ_PER_SEC\":%d,\"TOT_REQ\":%d}\n",
+                wroteJsonExt == 1 ? "," : "",
                 pTypeName, (pVHost)?pVHost->getName():"", m_pConfig->getName(),
                 m_pConfig->getMaxConns(), m_connPool.getMaxConns(),
                 m_connPool.getTotalConns(), inUseConn,
                 m_connPool.getFreeConns(), m_reqQueue.size(),
                 m_reqStats.getRPS(), m_reqStats.getTotal() );
+
+                wroteJsonExt = 1;
         }
 
         write( fd, achBuf, p - achBuf );
@@ -555,7 +558,7 @@ int ExtWorker::generateRTReport( int format, int fd, const char * pTypeName )
 //                 m_pConfig->getURL() ));
 //        stop();
 //    }
-    return 0;
+    return wroteJsonExt;
 }
 
 

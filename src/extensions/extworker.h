@@ -147,7 +147,7 @@ public:
     int processConnError( ExtConn * pConn, ExtRequest * pReq, int errCode );
 
     static int startServerSock( ExtWorkerConfig * pConfig, int backlog );
-    int generateRTReport( int format, int fd, const char * pTypeName );
+    int generateRTReport( int format, int wroteJsonExt, int fd, const char * pTypeName );
 
     ReqStats * getReqStats()    {   return &m_reqStats; }
 

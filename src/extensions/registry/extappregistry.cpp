@@ -174,7 +174,7 @@ void ExtAppSubRegistry::clear()
 
 #include <unistd.h>
 #include <stdio.h>
-int ExtAppSubRegistry::generateRTReport( int format, int fd, int type )
+int ExtAppSubRegistry::generateRTReport( int format, int wroteJsonExt int fd, int type )
 {
     static const char * s_pTypeName[] =
     {
@@ -187,19 +187,19 @@ int ExtAppSubRegistry::generateRTReport( int format, int fd, int type )
     };
 
     ExtAppMap::iterator iter;
-    for( iter = m_pRegistry->begin();
+    int tmpJsonExt = 0;
+    for( iter = m_pRegistry->begin(), int;
         iter != m_pRegistry->end();
+         iter = m_pRegistry->next( iter )
         )
     {
-        iter.second()->generateRTReport( format, fd, s_pTypeName[ type ] );
+        tmpJsonExt = iter.second()->generateRTReport( format, wroteJsonExt, fd, s_pTypeName[ type ] );
 
-        iter = m_pRegistry->next( iter );
-
-        if( format == 1 && iter != m_pRegistry->end() )
-            write( fd, ",", 1);
+        if( wroteJsonExt == 0 && tmpJsonExt == 1 )
+                wroteJsonExt = 1;
     }
 
-    return 0;
+    return wroteJsonExt;
 }
 
 
@@ -346,13 +346,20 @@ void ExtAppRegistry::runOnStartUp()
 
 int ExtAppRegistry::generateRTReport(int format, int fd )
 {
+    int wroteJsonExt = 0;
+
     if( format == 1)
         write( fd, ",\"EXTAPP\":[\n", 12 );
 
-    for( int i = 0; i < EA_NUM_APP; ++i)
+    for( int i = 0, tmpJsonExt = 0; i < EA_NUM_APP; ++i)
     {
         if ( i != EA_LOGGER )
-            s_registry[i]()->generateRTReport(format, fd, i );
+        {
+            tmpJsonExt = s_registry[i]()->generateRTReport(format, wroteJsonExt, fd, i );
+
+            if( wroteJsonExt == 0 && tmpJsonExt == 1 )
+                wroteJsonExt = 1;
+        }
     }
 
     if( format == 1)
