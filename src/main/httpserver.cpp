@@ -451,8 +451,8 @@ int HttpServerImpl::generateProcessReport( int format, int fd )
         p += safe_snprintf( p, &achBuf[4096] - p, "UPTIME:" );
 
         if ( days )
-            p += safe_snprintf( p, &achBuf[4096] - p, " %ld day%s", days, ( days > 1 )?"s":"" );
-        p += safe_snprintf( p, &achBuf[4096] - p, " %02d:%02d:%02d\n", hours, mins, seconds );
+            p += safe_snprintf( p, &achBuf[4096] - p, " %ld day%s", days, ( days > 1 )?"s ":"" );
+        p += safe_snprintf( p, &achBuf[4096] - p, "%02d:%02d:%02d\n", hours, mins, seconds );
     }
     else if( format == 1)
     {
