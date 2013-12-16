@@ -169,7 +169,7 @@ class DTblDef
 		$ctxOrder->_FDE = 'NNN';
 
 		$this->_attrs = array(
-			'priority' => new DAttr('priority', 'uint', 'Priority', 'text', true, -20, 20),
+    		'priority' => new DAttr('priority', 'uint', 'Priority', 'text', true, -20, 20),
 			'indexFiles' => new DAttr('indexFiles', 'fname', 'Index Files', 'textarea', true, NULL, NULL, 'rows="2" cols="60"', 1),
 			'autoIndex' => new DAttr('autoIndex', 'bool', 'Auto Index', 'radio'),
 			'adminEmails' => new DAttr('adminEmails', 'email', 'Administrator Email', 'textarea', true, NULL, NULL, 'rows="3" cols="60"', 1),
@@ -353,6 +353,8 @@ class DTblDef
 		$attr_ar = new DAttr('adminRoot', 'cust', NULL, NULL, false);
 		$attr_ar->_FDE = 'YNN';
 
+        $attr_report = new DAttr('reportFormat', 'sel', 'Report Format', 'select', true, NULL, array(''=>'', '1'=>'JSON', '0'=>'Compatibility'));
+
 		$attrs = array( 
 			$attr_mime, 
 			new DAttr('disableInitLogRotation', 'bool', 'Disable Initial Log Rotation', 'radio', true),
@@ -360,7 +362,9 @@ class DTblDef
 			$this->_attrs['enableIpGeo'],
 			new DAttr('useIpInProxyHeader', 'sel', 'Use Client IP in Header', 'select', true, NULL, array('0'=>'No', '1'=>'Yes', '2'=>'Trusted IP Only') ),
 			$this->_attrs['adminEmails'], 
-			$attr_ar );
+			$attr_ar,
+            $attr_report
+        );
 		$this->_tblDef[$id]->setAttr($attrs, 'general');
 		
 	}
