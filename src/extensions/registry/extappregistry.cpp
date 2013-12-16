@@ -172,6 +172,7 @@ void ExtAppSubRegistry::clear()
     m_pOldWorkers->release_objects();
 }
 
+#include <unistd.h>
 #include <stdio.h>
 int ExtAppSubRegistry::generateRTReport( int format, int fd, int type )
 {
@@ -183,7 +184,7 @@ int ExtAppSubRegistry::generateRTReport( int format, int fd, int type )
         "SERVLET",
         "LSAPI",
         "LOGGER"
-    };
+    }; v
 
     if( format == 1)
         write( fd, ",\"EXTAPP\":[\n", 11 );
