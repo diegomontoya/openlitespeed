@@ -73,9 +73,11 @@ class HttpVHostMapImpl: public HashStringMap<HttpVHost *>
         {
             iter.second()->getReqStats()->finalizeRpt();
 
+            int len;
+
             if( format == 0 )
             {
-                int len = safe_snprintf( achBuf, 1024, "REQ_RATE [%s]: "
+                len = safe_snprintf( achBuf, 1024, "REQ_RATE [%s]: "
                             "REQ_PROCESSING: %d, REQ_PER_SEC: %d, TOT_REQS: %d\n",
                             iter.first(), iter.second()->getRef(),
                             iter.second()->getReqStats()->getRPS(),
@@ -83,7 +85,7 @@ class HttpVHostMapImpl: public HashStringMap<HttpVHost *>
             }
             else if( format == 1)
             {
-                int len = safe_snprintf( achBuf, 1024, "{\"VHOST\":\"%s\","
+                len = safe_snprintf( achBuf, 1024, "{\"VHOST\":\"%s\","
                             "\"REQ_PROCESSING\":%d,\"REQ_PER_SEC\":%d,\"TOT_REQS\":%d}",
                             iter.first(), iter.second()->getRef(),
                             iter.second()->getReqStats()->getRPS(),
