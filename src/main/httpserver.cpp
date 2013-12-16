@@ -151,7 +151,7 @@ private:
     // interface functions
     HttpServerImpl( HttpServer * pServer )
         : m_sSwapDirectory( DEFAULT_SWAP_DIR )
-        , m_sRTReportFile( DEFAULT_TMP_DIR "/.rtreport" )
+        , m_sRTReportFile( DEFAULT_TMP_DIR "/.rtreport1" )
     {
         ClientCache::initObjPool();
         ExtAppRegistry::init();
