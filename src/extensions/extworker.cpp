@@ -481,8 +481,8 @@ int ExtWorker::generateRTReport( int format, int wroteJsonExt, int fd, const cha
         {
                 p += safe_snprintf( p, &achBuf[4096] - p,
                 "%s{\"TYPE\":\"%s\",\"VHOST\":\"%s\",\"NAME\":\"%s\",\"CMAX\":%d,\"EMAX\":%d,"
-                "\"POOL_SIZE\": %d,\"ACTIVE\":%d,"
-                "\"IDLE\":%d,\"QUEUE_SIZE\":%d,"
+                "\"POOL\": %d,\"ACTIVE\":%d,"
+                "\"IDLE\":%d,\"QUEUE\":%d,"
                 "\"REQ_PER_SEC\":%d,\"TOT_REQ\":%d}\n",
                 wroteJsonExt == 1 ? "," : "",
                 pTypeName, (pVHost)?pVHost->getName():"", m_pConfig->getName(),
