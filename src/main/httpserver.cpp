@@ -407,7 +407,7 @@ int   generateConnReport( int format, int fd  )
     {
          n = safe_snprintf( achBuf, 4096,
                      ",\"GLOBAL\":{\"BPS_IN\":%ld,\"BPS_OUT\":%ld,"
-                     "\"SSL_BPS_IN\":%ld,\"SSL_BPS_OUT\": %ld,"
+                     "\"SSL_BPS_IN\":%ld,\"SSL_BPS_OUT\":%ld,"
                      "\"MAXCONN\":%d,\"MAXSSL_CONN\":%d,\"PLAINCONN\":%d,"
                      "\"AVAILCONN\":%d,\"IDLECONN\":%d,\"SSLCONN\":%d,\"AVAILSSL\":%d,"
                      "\"REQ_PROCESSING\":%d,\"REQ_PER_SEC\":%d,\"TOT_REQS\":%d}\n",
@@ -456,13 +456,13 @@ int HttpServerImpl::generateProcessReport( int format, int fd )
     }
     else if( format == 1)
     {
-        p += safe_snprintf( p, &achBuf[4096] - p, "\"PRODUCT\":{\"NAME\":\"LiteSpeed Web Server\",\"EDITION\":\"%s\",\"VERSION\":\"%s\"},",
+        p += safe_snprintf( p, &achBuf[4096] - p, "\"PRODUCT\":{\"NAME\":\"LiteSpeed Web Server\",\"EDITION\":\"%s\",\"VERSION\":\"%s\"}\n",
                         "Open",
                         PACKAGE_VERSION  );
-        p += safe_snprintf( p, &achBuf[4096] - p, "\n\",UPTIME\":" );
+        p += safe_snprintf( p, &achBuf[4096] - p, ",\"UPTIME\":\"" );
 
         if ( days )
-            p += safe_snprintf( p, &achBuf[4096] - p, "\"%ld day%s", days, ( days > 1 )?"s":"" );
+            p += safe_snprintf( p, &achBuf[4096] - p, "%ld day%s", days, ( days > 1 )?"s":"" );
         p += safe_snprintf( p, &achBuf[4096] - p, " %02d:%02d:%02d\"\n", hours, mins, seconds );
     }
 

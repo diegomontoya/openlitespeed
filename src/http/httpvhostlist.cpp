@@ -103,7 +103,7 @@ class HttpVHostMapImpl: public HashStringMap<HttpVHost *>
         }
 
         if( format == 1 )
-            write( fd, "]\n", 2 );
+            write( fd, "\n]\n", 3 );
 
         return 0;
     }
