@@ -385,9 +385,10 @@ int   generateConnReport( int format, int fd  )
         HttpGlobals::s_iIdleConns = pCtrl->getMaxConns() - pCtrl->availConn();
     }
 
+    int n;
     if( format == 0 )
     {
-        int n = safe_snprintf( achBuf, 4096,
+        n = safe_snprintf( achBuf, 4096,
                     "BPS_IN: %ld, BPS_OUT: %ld, "
                     "SSL_BPS_IN: %ld, SSL_BPS_OUT: %ld\n"
                     "MAXCONN: %d, MAXSSL_CONN: %d, PLAINCONN: %d, "
@@ -404,7 +405,7 @@ int   generateConnReport( int format, int fd  )
     }
     else if( format == 1)
     {
-         int n = safe_snprintf( achBuf, 4096,
+         n = safe_snprintf( achBuf, 4096,
                      ",\"GLOBAL\":{\"BPS_IN\":%ld,\"BPS_OUT\":%ld,"
                      "\"SSL_BPS_IN\":%ld,\"SSL_BPS_OUT: %ld,\n"
                      "\"MAXCONN\":%d,\"MAXSSL_CONN\":%d,\"PLAINCONN\":%d,"
