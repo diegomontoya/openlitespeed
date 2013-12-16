@@ -463,7 +463,7 @@ int HttpServerImpl::generateProcessReport( int format, int fd )
 
         if ( days )
             p += safe_snprintf( p, &achBuf[4096] - p, "\"%ld day%s", days, ( days > 1 )?"s":"" );
-        p += safe_snprintf( p, &achBuf[4096] - p, " %02d:%02d:%02d\",\n", hours, mins, seconds );
+        p += safe_snprintf( p, &achBuf[4096] - p, " %02d:%02d:%02d\"\n", hours, mins, seconds );
     }
 
     write( fd, achBuf, p - achBuf );

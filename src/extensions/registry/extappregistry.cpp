@@ -186,9 +186,6 @@ int ExtAppSubRegistry::generateRTReport( int format, int fd, int type )
         "LOGGER"
     };
 
-    if( format == 1)
-        write( fd, ",\"EXTAPP\":[\n", 11 );
-
     ExtAppMap::iterator iter;
     for( iter = m_pRegistry->begin();
         iter != m_pRegistry->end();
@@ -196,9 +193,6 @@ int ExtAppSubRegistry::generateRTReport( int format, int fd, int type )
     {
         iter.second()->generateRTReport( format, fd, s_pTypeName[ type ] );
     }
-
-    if( format == 1)
-        write( fd, "]\n", 2 );
 
     return 0;
 }
@@ -347,15 +341,17 @@ void ExtAppRegistry::runOnStartUp()
 
 int ExtAppRegistry::generateRTReport(int format, int fd )
 {
-    char * p;
-    char achBuf[4096];
-    p = achBuf;
+    if( format == 1)
+        write( fd, ",\"EXTAPP\":[\n", 11 );
 
     for( int i = 0; i < EA_NUM_APP; ++i)
     {
         if ( i != EA_LOGGER )
             s_registry[i]()->generateRTReport(format, fd, i );
     }
+
+    if( format == 1)
+        write( fd, "]\n", 2 );
 
     return 0;
 }
