@@ -191,7 +191,7 @@ int ClientCache::writeBlockedIP( int format, AutoBuf * pBuf, Cache * pCache )
             if( format == 1)
                 *p++ = '"';
 
-            iter = pCache->next( iter )
+            iter = pCache->next( iter );
 
             if( iter != pCache->end() )
                 *p++ = ',';
