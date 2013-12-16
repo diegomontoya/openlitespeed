@@ -46,7 +46,7 @@ private:
     
     static int appendDirtyList( GHash::iterator iter, void * pList );
     void       clean( Cache * pCache );
-    int     writeBlockedIP( AutoBuf * pBuf, Cache * pCache );
+    int     writeBlockedIP( int format, AutoBuf * pBuf, Cache * pCache );
     
 public:
     

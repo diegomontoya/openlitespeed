@@ -219,8 +219,8 @@ int ClientCache::generateBlockedIPReport( int format, int fd )
     if( format == 0 )
     {
         buf.append( "BLOCKED_IP: ", 12 );
-        writeBlockedIP( &buf, &m_v4 );
-        writeBlockedIP( &buf, &m_v6 );
+        writeBlockedIP( format, &buf, &m_v4 );
+        writeBlockedIP( format, &buf, &m_v6 );
     }
     else if( format == 1 )
     {
