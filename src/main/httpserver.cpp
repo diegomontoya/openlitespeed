@@ -406,13 +406,13 @@ int   generateConnReport( int format, int fd  )
     else if( format == 1)
     {
          n = safe_snprintf( achBuf, 4096,
-                     ",\"GLOBAL\":{\"BPS_IN\":%ld,\"BPS_OUT\":%ld,"
-                     "\"SSL_BPS_IN\":%ld,\"SSL_BPS_OUT\":%ld,"
-                     "\"MAXCONN\":%d,\"MAXSSL_CONN\":%d,\"PLAINCONN\":%d,"
-                     "\"AVAILCONN\":%d,\"IDLECONN\":%d,\"SSLCONN\":%d,\"AVAILSSL\":%d,"
-                     "\"REQ_PROCESSING\":%d,\"REQ_PER_SEC\":%d,\"TOT_REQS\":%d}\n",
-                 HttpGlobals::s_lBytesRead/1024, HttpGlobals::s_lBytesWritten/1024,
-                 HttpGlobals::s_lSSLBytesRead/1024, HttpGlobals::s_lSSLBytesWritten/1024,
+                     ",\"GLOBAL\":{\"HTTP_TRAFFIC_IN\":%ld,\"HTTP_TRAFFIC_OUT\":%ld,"
+                     "\"SSL_TRAFFIC_IN\":%ld,\"SSL_TRAFFIC_OUT\":%ld,"
+                     "\"HTTP_CONN_MAX\":%d,\"SSL_CONN_MAX\":%d,\"HTTP_CONN_ACTIVE\":%d,"
+                     "\"HTTP_CONN_FREE\":%d,\"HTTP_CONN_IDLE\":%d,\"SSL_CONN_ACTIVE\":%d,\"SSL_CONN_FREE\":%d,"
+                     "\"REQ_PROCESSING\":%d,\"REQ_PER_SEC\":%d,\"TOT_REQ\":%d}\n",
+                 HttpGlobals::s_lBytesRead, HttpGlobals::s_lBytesWritten,
+                 HttpGlobals::s_lSSLBytesRead, HttpGlobals::s_lSSLBytesWritten,
                  pCtrl->getMaxConns(), pCtrl->getMaxSSLConns(),
                  pCtrl->getMaxConns() - SSLConns - pCtrl->availConn(),
                  pCtrl->availConn(), HttpGlobals::s_iIdleConns,

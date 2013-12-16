@@ -480,10 +480,10 @@ int ExtWorker::generateRTReport( int format, int fd, const char * pTypeName )
         else if(format == 1)
         {
                 p += safe_snprintf( p, &achBuf[4096] - p,
-                "{\"TYPE\":\"[%s]\",\"VHOST\":\"[%s]\",\"NAME\":\"[%s]\",\"CMAXCONN\":%d,\"EMAXCONN\":%d,"
-                "\"POOL_SIZE\": %d,\"INUSE_CONN\":%d,"
-                "\"IDLE_CONN\":%d,\"WAITQUE_DEPTH\":%d,"
-                "\"REQ_PER_SEC\":%d,\"TOT_REQS\":%d}\n",
+                "{\"TYPE\":\"[%s]\",\"VHOST\":\"[%s]\",\"NAME\":\"[%s]\",\"CONN_CMAX\":%d,\"CONN_EMAX\":%d,"
+                "\"POOL_SIZE\": %d,\"CONN_ACTIVE\":%d,"
+                "\"CONN_IDLE\":%d,\"QUEUE_SIZE\":%d,"
+                "\"REQ_PER_SEC\":%d,\"TOT_REQ\":%d}\n",
                 pTypeName, (pVHost)?pVHost->getName():"", m_pConfig->getName(),
                 m_pConfig->getMaxConns(), m_connPool.getMaxConns(),
                 m_connPool.getTotalConns(), inUseConn,
