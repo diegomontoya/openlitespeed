@@ -172,6 +172,7 @@ void ExtAppSubRegistry::clear()
     m_pOldWorkers->release_objects();
 }
 
+#include <stdio.h>
 int ExtAppSubRegistry::generateRTReport( int format, int fd, int type )
 {
     static const char * s_pTypeName[] =
