@@ -483,7 +483,7 @@ int ExtWorker::generateRTReport( int format, int wroteJsonExt, int fd, const cha
                 "%s{\"TYPE\":\"%s\",\"VHOST\":\"%s\",\"NAME\":\"%s\",\"CMAX\":%d,\"EMAX\":%d,"
                 "\"POOL\": %d,\"ACTIVE\":%d,"
                 "\"IDLE\":%d,\"QUEUE\":%d,"
-                "\"REQ_PER_SEC\":%d,\"TOT_REQ\":%d}\n",
+                "\"REQ_RATE\":%d,\"REQ_COUNT\":%d}\n",
                 wroteJsonExt == 1 ? "," : "",
                 pTypeName, (pVHost)?pVHost->getName():"", m_pConfig->getName(),
                 m_pConfig->getMaxConns(), m_connPool.getMaxConns(),

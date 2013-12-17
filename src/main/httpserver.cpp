@@ -410,7 +410,7 @@ int   generateConnReport( int format, int fd  )
                      "\"SSL_TRAFFIC_IN\":%ld,\"SSL_TRAFFIC_OUT\":%ld,"
                      "\"HTTP_CONN_MAX\":%d,\"SSL_CONN_MAX\":%d,\"HTTP_CONN_ACTIVE\":%d,"
                      "\"HTTP_CONN_FREE\":%d,\"HTTP_CONN_IDLE\":%d,\"SSL_CONN_ACTIVE\":%d,\"SSL_CONN_FREE\":%d,"
-                     "\"REQ_PROCESSING\":%d,\"REQ_PER_SEC\":%d,\"TOT_REQ\":%d}\n",
+                     "\"REQ_PROCESSING\":%d,\"REQ_RATE\":%d,\"REQ_COUNT\":%d}\n",
                  HttpGlobals::s_lBytesRead, HttpGlobals::s_lBytesWritten,
                  HttpGlobals::s_lSSLBytesRead, HttpGlobals::s_lSSLBytesWritten,
                  pCtrl->getMaxConns(), pCtrl->getMaxSSLConns(),
