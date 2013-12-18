@@ -86,7 +86,7 @@ class HttpVHostMapImpl: public HashStringMap<HttpVHost *>
             else if( format == 1)
             {
                 len = safe_snprintf( achBuf, 1024, "\t{\"VHOST\":\"%s\","
-                            "\"REQ_PROCESSING\":%d,\"REQ_RATE\":%d,\"REQ_COUNT\":%d}",
+                            "\"REQ_ACTIVE\":%d,\"REQ_RATE\":%d,\"REQ_COUNT\":%d}",
                             iter.first(), iter.second()->getRef(),
                             iter.second()->getReqStats()->getRPS(),
                             iter.second()->getReqStats()->getTotal() );
