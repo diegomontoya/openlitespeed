@@ -459,7 +459,7 @@ int HttpServerImpl::generateProcessReport( int format, int fd )
         p += safe_snprintf( p, &achBuf[4096] - p, "\"PRODUCT\":{\n\t\"NAME\":\"LiteSpeed Web Server\",\"EDITION\":\"%s\",\"VERSION\":\"%s\"\n},\n",
                         "Open",
                         PACKAGE_VERSION  );
-        p += safe_snprintf( p, &achBuf[4096] - p, "\"UPTIME\":{\n\t\"DAYS\":%ld,\"HRS\":%d,\"MINS\":%d,\"SECS\":%d,\"RAW\":%d\n},\n", days, hours, mins, seconds, delta );
+        p += safe_snprintf( p, &achBuf[4096] - p, "\"UPTIME\":{\n\t\"DAYS\":%ld,\"HRS\":%d,\"MINS\":%d,\"SECS\":%d,\"RAW\":%ld\n},\n", days, hours, mins, seconds, time(NULL) - m_lStartTime );
     }
 
     write( fd, achBuf, p - achBuf );
