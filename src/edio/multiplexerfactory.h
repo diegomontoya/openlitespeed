@@ -27,7 +27,7 @@ class MultiplexerFactory
     friend class TSingleton< MultiplexerFactory >;
     MultiplexerFactory();
     ~MultiplexerFactory();
-        
+
 public:
     enum
     {
@@ -35,7 +35,6 @@ public:
         SELECT,
         DEV_POLL,
         KQUEUE,
-        RT_SIG,
         EPOLL,
         BEST
     };

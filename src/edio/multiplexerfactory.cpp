@@ -21,7 +21,6 @@
 #include <edio/epoll.h>
 #include <edio/kqueuer.h>
 #include <edio/poller.h>
-#include <edio/rtsigio.h>
 
 #include <stdlib.h>
 #include <string.h>
