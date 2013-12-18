@@ -67,7 +67,7 @@ class HttpVHostMapImpl: public HashStringMap<HttpVHost *>
         char achBuf[1024];
 
         if( format == 1 )
-            write( fd, ",\"REQUEST\":[\n", 13 );
+            write( fd, "\"REQUEST\":[\n", 12 );
 
         for( iter = begin(); iter != iterEnd; )
         {
@@ -85,7 +85,7 @@ class HttpVHostMapImpl: public HashStringMap<HttpVHost *>
             }
             else if( format == 1)
             {
-                len = safe_snprintf( achBuf, 1024, "{\"VHOST\":\"%s\","
+                len = safe_snprintf( achBuf, 1024, "\t{\"VHOST\":\"%s\","
                             "\"REQ_PROCESSING\":%d,\"REQ_RATE\":%d,\"REQ_COUNT\":%d}",
                             iter.first(), iter.second()->getRef(),
                             iter.second()->getReqStats()->getRPS(),
@@ -103,7 +103,7 @@ class HttpVHostMapImpl: public HashStringMap<HttpVHost *>
         }
 
         if( format == 1 )
-            write( fd, "\n]\n", 3 );
+            write( fd, "\n],\n", 4 );
 
         return 0;
     }

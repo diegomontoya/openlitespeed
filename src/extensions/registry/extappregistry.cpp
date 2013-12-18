@@ -349,7 +349,7 @@ int ExtAppRegistry::generateRTReport(int format, int fd )
     int wroteJsonExt = 0;
 
     if( format == 1)
-        write( fd, ",\"EXTAPP\":[\n", 12 );
+        write( fd, "\"EXTAPP\":[\n", 11 );
 
     for( int i = 0, tmpJsonExt = 0; i < EA_NUM_APP; ++i)
     {
@@ -363,7 +363,7 @@ int ExtAppRegistry::generateRTReport(int format, int fd )
     }
 
     if( format == 1)
-        write( fd, "]\n", 2 );
+        write( fd, "\n],\n", 4 );
 
     return 0;
 }

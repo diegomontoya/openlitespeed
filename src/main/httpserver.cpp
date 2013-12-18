@@ -406,11 +406,11 @@ int   generateConnReport( int format, int fd  )
     else if( format == 1)
     {
          n = safe_snprintf( achBuf, 4096,
-                     ",\"GLOBAL\":{\"HTTP_TRAFFIC_IN\":%ld,\"HTTP_TRAFFIC_OUT\":%ld,"
+                     "\"GLOBAL\":{\n\t\"HTTP_TRAFFIC_IN\":%ld,\"HTTP_TRAFFIC_OUT\":%ld,"
                      "\"SSL_TRAFFIC_IN\":%ld,\"SSL_TRAFFIC_OUT\":%ld,"
                      "\"HTTP_CONN_MAX\":%d,\"SSL_CONN_MAX\":%d,\"HTTP_CONN_ACTIVE\":%d,"
                      "\"HTTP_CONN_FREE\":%d,\"HTTP_CONN_IDLE\":%d,\"SSL_CONN_ACTIVE\":%d,\"SSL_CONN_FREE\":%d,"
-                     "\"REQ_PROCESSING\":%d,\"REQ_RATE\":%d,\"REQ_COUNT\":%d}\n",
+                     "\"REQ_PROCESSING\":%d,\"REQ_RATE\":%d,\"REQ_COUNT\":%d\n},\n",
                  HttpGlobals::s_lBytesRead, HttpGlobals::s_lBytesWritten,
                  HttpGlobals::s_lSSLBytesRead, HttpGlobals::s_lSSLBytesWritten,
                  pCtrl->getMaxConns(), pCtrl->getMaxSSLConns(),
@@ -456,10 +456,10 @@ int HttpServerImpl::generateProcessReport( int format, int fd )
     }
     else if( format == 1)
     {
-        p += safe_snprintf( p, &achBuf[4096] - p, "\"PRODUCT\":{\"NAME\":\"LiteSpeed Web Server\",\"EDITION\":\"%s\",\"VERSION\":\"%s\"}\n",
+        p += safe_snprintf( p, &achBuf[4096] - p, "\"PRODUCT\":{\n\t\"NAME\":\"LiteSpeed Web Server\",\"EDITION\":\"%s\",\"VERSION\":\"%s\"\n},\n",
                         "Open",
                         PACKAGE_VERSION  );
-        p += safe_snprintf( p, &achBuf[4096] - p, ",\"UPTIME\":{\"DAYS\":%ld,\"HRS\":%d,\"MINS\":%d,\"SECS\":%d}\n", days, hours, mins, seconds );
+        p += safe_snprintf( p, &achBuf[4096] - p, "\"UPTIME\":{\n\t\"DAYS\":%ld,\"HRS\":%d,\"MINS\":%d,\"SECS\":%d,\"RAW\":%d\n},\n", days, hours, mins, seconds, delta );
     }
 
     write( fd, achBuf, p - achBuf );

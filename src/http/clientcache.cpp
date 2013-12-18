@@ -223,19 +223,20 @@ int ClientCache::generateBlockedIPReport( int format, int fd )
         buf.append( "BLOCKED_IP: ", 12 );
         writeBlockedIP( format, &buf, &m_v4 );
         writeBlockedIP( format, &buf, &m_v6 );
+        buf.append( '\n' );
     }
     else if( format == 1 )
     {
-         buf.append( ",\"BLOCKED_IP\":{\n", 16 );
-         buf.append( "\"IPV4\":[", 8 );
+         buf.append( "\"BLOCKED_IP\":{\n", 15 );
+         buf.append( "\t\"IPV4\":[", 9 );
          writeBlockedIP( format, &buf, &m_v4 );
          buf.append( "],\n", 3 );
-         buf.append( "\"IPV6\":[", 8 );
+         buf.append( "\t\"IPV6\":[", 9 );
          writeBlockedIP( format, &buf, &m_v6 );
          buf.append( "]\n", 2 );
          buf.append( "}\n", 2 );
     }
-    buf.append( '\n' );
+    
     write( fd, buf.begin(), buf.size() );
     return 0;
 }
