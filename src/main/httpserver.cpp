@@ -521,7 +521,7 @@ HttpListener* HttpServerImpl::newTcpListener( const char * pName, const char * p
     if ( pListener == NULL )
         return pListener;
     int ret;
-    for( int i = 0; i < 3; ++i )
+    for( int i = 0; i < 9; ++i )
     {
         ret = pListener->start();
         if ( !ret )
