@@ -1275,11 +1275,11 @@ void LshttpdMain::gracefulRestart()
         int fd = HttpGlobals::getStdErrLogger()->getStdErr();
         if ( fd != 2 )
             close( fd );
-        int len = getFullPath( "bin/lshttpd", achCmd, 1024 );
-        achCmd[len - 8] = 0;
+        int len = getFullPath( "bin/litespeed", achCmd, 1024 );
+        achCmd[len - 10] = 0;
         chdir( achCmd );
-        achCmd[len - 8] = '/';
-        if ( execl( achCmd, "lshttpd", NULL  ) )
+        achCmd[len - 10] = '/';
+        if ( execl( achCmd, "litespeed", NULL  ) )
         {
             LOG_ERR(( "Failed to start new instance of LiteSpeed Web server!" ));
         }
