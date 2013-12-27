@@ -2,10 +2,12 @@
 
 #use jemalloc if exists
 LD_PRELOAD=/usr/local/lib/libjemalloc.so
-if [ -f LD_PRELOAD ];
+if [ -e $LD_PRELOAD ];
 then
    export LD_PRELOAD
+   echo "Using jemalloc"
 fi
+
 
 # resolve links - $0 may be a softlink
 PROG="$0"
