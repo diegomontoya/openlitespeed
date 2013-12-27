@@ -44,6 +44,18 @@ long SSLContext::setSessionCacheMode( long mode )
     return SSL_CTX_set_session_cache_mode( m_pCtx, mode );
 }
 
+/* default to 1024*20 = 20K */
+long SSLContext::setSessionCacheSize( long size )
+{
+    return SSL_CTX_set_session_cache_size( m_pCtx, size );
+}
+
+/* default to 300 */
+long SSLContext::setSessionTimeOut( long timeout )
+{
+    return SSL_CTX_set_timeout( m_pCtx, timeout );
+}
+
 int SSLContext::seedRand(int len)
 {
     static int fd = open( "/dev/urandom", O_RDONLY|O_NONBLOCK );
@@ -247,6 +259,10 @@ int SSLContext::init( int iMethod )
         updateProtocol( iMethod );
 
         setOptions( SSL_OP_CIPHER_SERVER_PREFERENCE);
+
+        //increase defaults
+        setSessionTimeOut( 100800 ); //from 300s default
+        setSessionCacheSize ( 1024 * 1000 ); //from 20k default to 1m
 
         SSL_CTX_set_mode( m_pCtx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER );
         if ( m_iRenegProtect )

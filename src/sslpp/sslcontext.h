@@ -78,6 +78,8 @@ public:
     int checkPrivateKey();
     long setOptions( long options );
     long setSessionCacheMode( long mode );
+    long setSessionCacheSize( long size );
+    long setSessionTimeOut( long timeout );
     void setProtocol( int method );
     void setRenegProtect( int p )   {   m_iRenegProtect = p;    }
     int  setCipherList( const char * pList );
