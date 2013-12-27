@@ -264,14 +264,8 @@ int SSLContext::init( int iMethod )
         setSessionTimeOut( 100800 ); //from 300s default
         setSessionCacheSize ( 1024 * 500 ); //from 20k default to 500k
 
-        SSL_CTX_set_mode( m_pCtx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER );
-
-//openssl doc: When we no longer need a read buffer or a write buffer for a given SSL, then release the memory we were using to hold it. Released memory is either appended to a list of unused RAM chunks on the SSL_CTX, or simply freed if the list of unused chunks would become longer than SSL_CTX->freelist_max_len, which defaults to 32. Using this flag can save around 34k per idle SSL connection. This flag has no effect on SSL v2 connections, or on DTLS connections.
-#ifdef SSL_MODE_RELEASE_BUFFERS
-    SSL_CTX_set_mode(ssl->ctx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER|SSL_MODE_RELEASE_BUFFERS);
-#else
-    SSL_CTX_set_mode(ssl->ctx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
-#endif
+        //openssl doc: When we no longer need a read buffer or a write buffer for a given SSL, then release the memory we were using to hold it. Released memory is either appended to a list of unused RAM chunks on the SSL_CTX, or simply freed if the list of unused chunks would become longer than SSL_CTX->freelist_max_len, which defaults to 32. Using this flag can save around 34k per idle SSL connection. This flag has no effect on SSL v2 connections, or on DTLS connections.
+        SSL_CTX_set_mode( m_pCtx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER|SSL_MODE_RELEASE_BUFFERS );
 
         if ( m_iRenegProtect )
         {
