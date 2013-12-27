@@ -47,7 +47,7 @@ long SSLContext::setSessionCacheMode( long mode )
 /* default to 1024*20 = 20K */
 long SSLContext::setSessionCacheSize( long size )
 {
-    return SSL_CTX_set_session_cache_size( m_pCtx, size );
+    return SSL_CTX_sess_set_cache_size( m_pCtx, size );
 }
 
 /* default to 300 */
