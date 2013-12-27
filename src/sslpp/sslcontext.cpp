@@ -260,14 +260,17 @@ int SSLContext::init( int iMethod )
 
         setOptions( SSL_OP_CIPHER_SERVER_PREFERENCE);
 
+        //openssl doc: Disables a countermeasure against a SSL 3.0/TLS 1.0 protocol vulnerability affecting CBC ciphers, which cannot be handled by some broken SSL implementations. This option has no effect for connections using other ciphers.
+        setOptions( SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS );
+
         //increase defaults
         setSessionTimeOut( 100800 ); //from 300s default
-        setSessionCacheSize ( 1024 * 1000 ); //from 20k default to 1m
+        setSessionCacheSize ( 1024 * 500 ); //from 20k default to 500k
 
         SSL_CTX_set_mode( m_pCtx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER );
         if ( m_iRenegProtect )
         {
-            setOptions( SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION );
+            //? Test Disable setOptions( SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION );
             SSL_CTX_set_info_callback( m_pCtx, SSLConnection_ssl_info_cb );
         }
         //initECDH();
