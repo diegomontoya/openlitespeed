@@ -23,7 +23,7 @@
 #include <util/autostr.h>
 #include <pcre.h>
 
-//#define _USE_PCRE_JIT_
+#define _USE_PCRE_JIT_
 
 
 class RegexResult
