@@ -1,13 +1,22 @@
 #!/bin/sh
 
 #use jemalloc if exists
-LD_PRELOAD=/usr/local/lib/libjemalloc.so
-if [ -e $LD_PRELOAD ];
-then
-   export LD_PRELOAD
-   echo "Using jemalloc"
-fi
+JEMALLOC0=/usr/local/lib/libjemalloc.so
+JEMALLOC1=/usr/lib64/libjemalloc.so.1
 
+if [ -e $JEMALLOC0 ];
+then
+   LD_PRELOAD=$JEMALLOC0
+   export LD_PRELOAD
+   echo "Using jemalloc/Self Compiled"
+   echo $LD_PRELOAD
+elif [ -e $JEMALLOC1 ];
+then
+   LD_PRELOAD=$JEMALLOC1
+   export LD_PRELOAD
+   echo "Using jemalloc/Package"
+   echo $LD_PRELOAD
+fi
 
 # resolve links - $0 may be a softlink
 PROG="$0"
