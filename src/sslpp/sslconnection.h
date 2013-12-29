@@ -31,6 +31,10 @@ class SSLConnection
     SSL*    m_ssl;
     int     m_iStatus;
     int     m_iWant;
+
+    //test code
+    int handshakeBufferSet = 0;
+    int handshakeBufferSize = 1400;
     
     SSLConnection( const SSLConnection& rhs ) {}
     void operator=( const SSLConnection& rhs ) {}
