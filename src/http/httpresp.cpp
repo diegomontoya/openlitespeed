@@ -189,8 +189,10 @@ void HttpResp::finalizeHeader( int ver, int code, const HttpVHost *vhost )
     if ( vhost )
     {
        const AutoStr2& str = vhost->getSpdyAdHeader();
-        if( !m_iSSL && str.len() > 0 )
+        if( !m_iSSL && str.len() > 0 ) {
             appendHeader("Alternate-Protocol", 18, str.c_str(), str.len());
+            appendHeader("Strict-Transport-Security", 25, "max-age=16070400; includeSubDomains", 35);
+        }
     }
     m_respHeaders.getHeaders(&m_iovec);
     
