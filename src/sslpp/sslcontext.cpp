@@ -120,32 +120,6 @@ static void SSLConnection_ssl_info_cb( const SSL *pSSL, int where, int ret)
     {
          pSSL->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
     }
-
-    //from nginx
-    if ((where & SSL_CB_ACCEPT_LOOP) == SSL_CB_ACCEPT_LOOP) {
-
-
-            if (!pSSL->handshakeBufferSet) {
-                /*
-                 * By default OpenSSL uses 4k buffer during a handshake,
-                 * which is too low for long certificate chains and might
-                 * result in extra round-trips.
-                 *
-                 * To adjust a buffer size we detect that buffering was added
-                 * to write side of the connection by comparing rbio and wbio.
-                 * If they are different, we assume that it's due to buffering
-                 * added to wbio, and set buffer size.
-                 */
-
-                rbio = SSL_get_rbio(pSSL);
-                wbio = SSL_get_wbio(pSSL);
-
-                if (rbio != wbio) {
-                    BIO_set_write_buffer_size(wbio, pSSL->handshakeBufferSize);
-                    pSSL->handshakeBufferSet = 1;
-                }
-            }
-        }
 }
 
 void SSLContext::setProtocol( int method )
