@@ -270,11 +270,11 @@ int SSLContext::init( int iMethod )
         setSessionCacheSize ( 1024 * 500 ); //from 20k default to 500k
 
         //openssl doc: When we no longer need a read buffer or a write buffer for a given SSL, then release the memory we were using to hold it. Released memory is either appended to a list of unused RAM chunks on the SSL_CTX, or simply freed if the list of unused chunks would become longer than SSL_CTX->freelist_max_len, which defaults to 32. Using this flag can save around 34k per idle SSL connection. This flag has no effect on SSL v2 connections, or on DTLS connections.
-        SSL_CTX_set_mode( m_pCtx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER|SSL_MODE_RELEASE_BUFFERS|SSL_MODE_ENABLE_PARTIAL_WRITE );
+        SSL_CTX_set_mode( m_pCtx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER|SSL_MODE_RELEASE_BUFFERS );
 
         if ( m_iRenegProtect )
         {
-            //? Test Disable setOptions( SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION );
+            setOptions( SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION );
             SSL_CTX_set_info_callback( m_pCtx, SSLConnection_ssl_info_cb );
         }
         //initECDH();
