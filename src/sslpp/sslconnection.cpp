@@ -125,14 +125,14 @@ int SSLConnection::read( char * pBuf, int len )
     }
 }
 
-int SSLConnection::write( const char * pBuf, int len )
+int SSLConnection::write_test( const char * pBuf, int len )
 {
     assert( m_ssl );
     m_iWant = 0;
 
     //loop
     int ret = 0; //total return/bytes written
-    int tret = 0; //temp return in loop
+
     int chunkSize = 1420; //ipv4 will add 60 bytes, ipv4 should be 1400 with about 80 bytes added on top
     int chunks;
     int chunkPartialLength = 0;
@@ -146,7 +146,7 @@ int SSLConnection::write( const char * pBuf, int len )
     chunkPartialLength = len % chunkSize;
     chunks = chunkPartialLength ? len / chunkSize + 1 : len / chunkSize;
 
-    for( int i = 1, writeRetryCount = 0, w_startPos = 0, w_length = 0, w_err = 0; i <= chunks; i++ ) {
+    for( int i = 1, tret = 0, writeRetryCount = 0, w_startPos = 0, w_length = 0, w_err = 0; i <= chunks; i++ ) {
         w_startPos = i * chunkSize - chunkSize;
         if( chunks  == 1 )
             w_length = len;
@@ -158,6 +158,7 @@ int SSLConnection::write( const char * pBuf, int len )
         }
 
         tret = SSL_write( m_ssl, pBuf + w_startPos , w_length);
+
         if ( tret > 0 ) {
             //if retry, retry success and reset
             if( writeRetryCount > 0 )
@@ -196,7 +197,7 @@ int SSLConnection::write( const char * pBuf, int len )
      return ret;
 }
 
-int SSLConnection::write_old( const char * pBuf, int len )
+int SSLConnection::write( const char * pBuf, int len )
 {
     assert( m_ssl );
     m_iWant = 0;
