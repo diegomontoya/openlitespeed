@@ -129,6 +129,77 @@ int SSLConnection::write( const char * pBuf, int len )
 {
     assert( m_ssl );
     m_iWant = 0;
+
+    //loop
+    int ret = 0; //total return/bytes written
+    int tret = 0; //temp return in loop
+    int chunkSize = 1420; //ipv4 will add 60 bytes, ipv4 should be 1400 with about 80 bytes added on top
+    int chunks;
+    int chunkPartialLength = 0;
+
+    //why write zero bytes? assume success
+    if(len == 0) {
+         m_iWant &= ~LAST_WRITE;
+         return 0;
+    }
+
+    chunkPartialLength = len % chunkSize;
+    chunks = chunkPartialLength ? len / chunkSize + 1 : len / chunkSize;
+
+    for( int i = 1, writeRetryCount = 0, w_startPos = 0, w_length = 0, w_err = 0; i <= chunks; i++ ) {
+        w_startPos = i * chunkSize - chunkSize;
+        if( chunks  == 1 )
+            w_length = len;
+        if( chunks > 1) {
+            if( i == chunks )
+                w_length = chunkPartialLength;
+            else
+                w_length = chunkSize;
+        }
+
+        tret = SSL_write( m_ssl, pBuf + w_startPos , w_length);
+        if ( tret > 0 ) {
+            //if retry, retry success and reset
+            if( writeRetryCount > 0 )
+                writeRetryCount = 0;
+
+            ret += tret;
+        }
+        //ssl connection failure, not recoverable
+        else if ( tret == 0 ){
+            m_iWant = LAST_WRITE;
+            return checkError( tret );
+        }
+        else {
+            //only retry the same write error 3 times
+            if( writeRetryCount > 3 ) {
+                //should not hit this but we will not retry write more than 3 times
+                m_iWant = LAST_WRITE;
+                return checkError( tret );
+            }
+            w_err = SSL_get_error( m_ssl, tret );
+            //let's try that write again
+            if( w_err == SSL_ERROR_WANT_WRITE ) {
+                //let's retry this
+                i--;
+                writeRetryCount++;
+            }
+            //ssl client renego? errr out
+            else if ( w_err == SSL_ERROR_WANT_READ ) {
+                m_iWant = LAST_WRITE;
+                return checkError( tret );
+            }
+        }
+    }
+
+     m_iWant &= ~LAST_WRITE;
+     return ret;
+}
+
+int SSLConnection::write_old( const char * pBuf, int len )
+{
+    assert( m_ssl );
+    m_iWant = 0;
     int ret = SSL_write( m_ssl, pBuf, len );
     if ( ret > 0 )
     {
