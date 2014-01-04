@@ -1,7 +1,7 @@
 #!/bin/sh
 
-#make sure initcwd is set to 16
-ip route | while read p; do ip route change $p initcwnd 16 initrwnd 16; done
+#make sure initcwd is set to 12
+ip route | while read p; do ip route change $p initcwnd 12; done
 
 #use jemalloc if exists
 JEMALLOC0=/usr/local/lib/libjemalloc.soDISABLE
