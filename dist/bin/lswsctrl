@@ -4,20 +4,21 @@
 ip route | while read p; do ip route change $p initcwnd 12; done
 
 #use jemalloc if exists
-JEMALLOC0=/usr/local/lib/libjemalloc.soDISABLE
-JEMALLOC1=/usr/lib64/libjemalloc.so.1DISABLE
+JEMALLOC1=/usr/lib64/libjemalloc.so.1
+JEMALLOC0=/usr/local/lib/libjemalloc.so.1
 
-if [ -e $JEMALLOC0 ];
-then
-   LD_PRELOAD=$JEMALLOC0
-   export LD_PRELOAD
-   echo "Using jemalloc/Self Compiled"
-   echo $LD_PRELOAD
-elif [ -e $JEMALLOC1 ];
+
+if [ -e $JEMALLOC1 ];
 then
    LD_PRELOAD=$JEMALLOC1
    export LD_PRELOAD
    echo "Using jemalloc/Package"
+   echo $LD_PRELOAD
+elif [ -e $JEMALLOC0 ];
+then
+   LD_PRELOAD=$JEMALLOC0
+   export LD_PRELOAD
+   echo "Using jemalloc/Self Compiled"
    echo $LD_PRELOAD
 fi
 
