@@ -236,7 +236,7 @@ int SSLContext::initECDH()
     SSL_CTX_set_tmp_ecdh(m_pCtx,ecdh); 
     EC_KEY_free(ecdh);
 
-    //SSL_CTX_set_options(m_pCtx, SSL_OP_SINGLE_ECDH_USE);
+    SSL_CTX_set_options(m_pCtx, SSL_OP_SINGLE_ECDH_USE);
 
 #endif
 #endif
