@@ -229,8 +229,8 @@ int SSLContext::initECDH()
 #if OPENSSL_VERSION_NUMBER >= 0x10001000L
 #ifndef OPENSSL_NO_ECDH
     EC_KEY *ecdh; 
-    //ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
-    ecdh = EC_KEY_new_by_curve_name(NID_sect163k1);
+    ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+    //mostbrowers not supported ecdh = EC_KEY_new_by_curve_name(NID_sect163k1);
     if (ecdh == NULL)
         return -1;
     SSL_CTX_set_tmp_ecdh(m_pCtx,ecdh); 
