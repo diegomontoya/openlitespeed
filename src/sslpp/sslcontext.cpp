@@ -260,8 +260,8 @@ int SSLContext::init( int iMethod )
         /* OpenSSL >= 1.0 only */
         SSL_CTX_set_options(m_pCtx, SSL_OP_NO_COMPRESSION);
 #endif
-        //setOptions( SSL_OP_SINGLE_DH_USE|SSL_OP_ALL );
-        setOptions( SSL_OP_ALL );
+        setOptions( SSL_OP_SINGLE_DH_USE|SSL_OP_ALL );
+        //setOptions( SSL_OP_ALL );
         //setOptions( SSL_OP_NO_SSLv2 );
         updateProtocol( iMethod );
 
@@ -275,7 +275,7 @@ int SSLContext::init( int iMethod )
         SSL_CTX_set_mode( m_pCtx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER|SSL_MODE_RELEASE_BUFFERS );
 
         //test openssl readahead flag
-        SSL_CTX_set_read_ahead( m_pCtx, 1);
+        //SSL_CTX_set_read_ahead( m_pCtx, 1);
 
         if ( m_iRenegProtect )
         {
