@@ -4,9 +4,8 @@
 ip route | while read p; do ip route change $p initcwnd 12; done
 
 #use jemalloc if exists
-JEMALLOC1=/usr/lib64/libjemalloc.so.1
-JEMALLOC0=/usr/local/lib/libjemalloc.so.1
-
+JEMALLOC1=/usr/local/lib/libjemalloc.so.1
+JEMALLOC0=/usr/lib64/libjemalloc.so.1
 
 if [ -e $JEMALLOC1 ];
 then
