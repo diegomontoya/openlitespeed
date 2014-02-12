@@ -216,6 +216,9 @@ int ClientCache::writeBlockedIP( int format, AutoBuf * pBuf, Cache * pCache )
 
 int ClientCache::generateBlockedIPReport( int format, int fd )
 {
+    //waste of resources..test disable
+    return 0;
+    
     AutoBuf buf(1024);
 
     if( format == 0 )
