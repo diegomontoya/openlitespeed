@@ -288,13 +288,9 @@ class DTblDef
 		$attr7 = new DAttr('adminRoot', 'cust', NULL, NULL, false);
 		$attr7->_FDE = 'YNN';
 
-        $attr8 = new DAttr('showVersionNumber', 'sel', 'Server Signature', 'select', false, NULL, array('0'=>'Hide Version', '1'=>'Show Version', '2'=>'Hide Full Header'));
-
-        new DAttr('showVersionNumber', 'sel', 'Server Signature', 'select', false, NULL, array('0'=>'Hide Version', '1'=>'Show Version', '2'=>'Hide Full Header')),
-
 		$attrs = array( $attr2, $attr3,	$this->_attrs['enableIpGeo'],
 				$attr4, $attr5, $attr6,
-						$this->_attrs['adminEmails'], $attr7, $attr8 );
+						$this->_attrs['adminEmails'], $attr7 );
 		$this->_tblDef[$id]->setAttr($attrs, 'general');
 	}
 

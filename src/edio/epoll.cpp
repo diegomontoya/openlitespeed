@@ -40,7 +40,7 @@ epoll::epoll()
     : m_epfd( -1 )
     , m_pResults( NULL )
 {
-    setFLTag( O_NONBLOCK | O_RDWR  );
+    setFLTag( O_NONBLOCK | O_RDWR );
 
 }
 

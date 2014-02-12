@@ -76,11 +76,6 @@ void HttpResp::addLocationHeader( const HttpReq * pReq )
     m_respHeaders.appendLastVal( "Location", 8, pLocation, pReq->getLocationLen() );
 }
 
-void  HttpResp::parseAdd( const char * pBuf, int len )
-{
-    m_respHeaders.parseAdd(pBuf, len, RespHeader::APPEND );
-}
-
 void HttpResp::buildCommonHeaders()
 {
     HttpResp::m_commonHeaders[0].index    = HttpRespHeaders::H_DATE;
@@ -188,7 +183,7 @@ void HttpResp::finalizeHeader( int ver, int code, const HttpVHost *vhost )
     m_respHeaders.addStatusLine(ver, code);
     if ( vhost )
     {
-        const AutoStr2& str = vhost->getSpdyAdHeader();
+       const AutoStr2& str = vhost->getSpdyAdHeader();
         if( !m_iSSL && str.len() > 0 )
             appendHeader("Alternate-Protocol", 18, str.c_str(), str.len());
 

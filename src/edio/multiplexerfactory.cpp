@@ -21,16 +21,19 @@
 #include <edio/epoll.h>
 #include <edio/kqueuer.h>
 #include <edio/poller.h>
+#include <edio/rtsigio.h>
 
 #include <stdlib.h>
 #include <string.h>
 
+int MultiplexerFactory::s_iMaxFds = 4096;
 static const char * s_sType[MultiplexerFactory::BEST+1] =
 {
     "poll",
     "select",
     "devpoll",
     "kqueue",
+    "rtsig",
     "epoll",
     "best"
 };
@@ -69,6 +72,11 @@ Multiplexer* MultiplexerFactory::get( int type )
     switch( type )
     {
 #if defined(linux) || defined(__linux) || defined(__linux__) || defined(__gnu_linux__)
+#if 0
+    case RT_SIG:
+        return new RTsigio();
+#endif
+
     case BEST:
     case EPOLL:
         return new epoll();

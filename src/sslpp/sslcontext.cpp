@@ -51,7 +51,7 @@ long SSLContext::setSessionCacheSize( long size )
 }
 
 /* default to 300 */
-long SSLContext::setSessionTimeOut( long timeout )
+long SSLContext::setSessionTimeout( long timeout )
 {
     return SSL_CTX_set_timeout( m_pCtx, timeout );
 }
@@ -120,11 +120,6 @@ static void SSLConnection_ssl_info_cb( const SSL *pSSL, int where, int ret)
     {
          pSSL->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
     }
-
-    //all EDHE ciphers have handshake above 4KB...set to 8KB
-    //if ((where & SSL_CB_ACCEPT_LOOP) == SSL_CB_ACCEPT_LOOP) {
-    //    BIO_set_write_buffer_size(SSL_get_wbio(pSSL), 8192);
-    //}
 }
 
 void SSLContext::setProtocol( int method )
@@ -229,8 +224,7 @@ int SSLContext::initECDH()
 #if OPENSSL_VERSION_NUMBER >= 0x10001000L
 #ifndef OPENSSL_NO_ECDH
     EC_KEY *ecdh; 
-    ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
-    //mostbrowers not supported ecdh = EC_KEY_new_by_curve_name(NID_sect163k1);
+    ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1); 
     if (ecdh == NULL)
         return -1;
     SSL_CTX_set_tmp_ecdh(m_pCtx,ecdh); 
@@ -261,22 +255,21 @@ int SSLContext::init( int iMethod )
         SSL_CTX_set_options(m_pCtx, SSL_OP_NO_COMPRESSION);
 #endif
         setOptions( SSL_OP_SINGLE_DH_USE|SSL_OP_ALL );
-        //setOptions( SSL_OP_ALL );
         //setOptions( SSL_OP_NO_SSLv2 );
         updateProtocol( iMethod );
 
         setOptions( SSL_OP_CIPHER_SERVER_PREFERENCE);
 
         //increase defaults
-        setSessionTimeOut( 100800 ); //from 300s default
-        setSessionCacheSize ( 1024 * 50 ); //from 20k default to 50k
+        setSessionTimeout( 100800 ); 
+        setSessionCacheSize ( 1024 * 40 ); 
 
-        //openssl doc: When we no longer need a read buffer or a write buffer for a given SSL, then release the memory we were using to hold it. Released memory is either appended to a list of unused RAM chunks on the SSL_CTX, or simply freed if the list of unused chunks would become longer than SSL_CTX->freelist_max_len, which defaults to 32. Using this flag can save around 34k per idle SSL connection. This flag has no effect on SSL v2 connections, or on DTLS connections.
-        SSL_CTX_set_mode( m_pCtx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER|SSL_MODE_RELEASE_BUFFERS );
-
-        //test openssl readahead flag
-        //SSL_CTX_set_read_ahead( m_pCtx, 1);
-
+        
+        SSL_CTX_set_mode( m_pCtx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
+#ifdef SSL_MODE_RELEASE_BUFFERS
+            |SSL_MODE_RELEASE_BUFFERS
+#endif
+        );
         if ( m_iRenegProtect )
         {
             setOptions( SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION );
@@ -807,7 +800,7 @@ static const char * NEXT_PROTO_STRING[3] =
 {
     "\x06spdy/2\x08http/1.1",
     "\x08spdy/3.1\x06spdy/3\x08http/1.1",
-    "\x08spdy/3.1\x06spdy/3\x06spdy/2\x08http/1.1"
+    "\x08spdy/3.1\x06spdy/3\x06spdy/2\x08http/1.1" 
 };
 
 static int NEXT_PROTO_STRING_LEN[3] =

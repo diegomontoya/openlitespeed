@@ -31,7 +31,7 @@ class SSLConnection
     SSL*    m_ssl;
     int     m_iStatus;
     int     m_iWant;
-
+    
     SSLConnection( const SSLConnection& rhs ) {}
     void operator=( const SSLConnection& rhs ) {}
 public:
@@ -74,7 +74,6 @@ public:
     int connect();
     int read( char * pBuf, int len );
     int write( const char * pBuf, int len );
-    int write_test( const char * pBuf, int len );
     int flush();
     int shutdown( int bidirectional );
     int checkError( int ret );

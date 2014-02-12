@@ -126,7 +126,6 @@ int CoreSocket::bind( const GSockAddr& server, int type, int *fd )
     if ( *fd == -1 )
         return errno;
     int flag = 1;
-    //if(setsockopt( *fd, SOL_SOCKET, SO_REUSEPORT,
     if(setsockopt( *fd, SOL_SOCKET, SO_REUSEADDR,
                 (char *)( &flag ), sizeof(flag)) == 0)
     {

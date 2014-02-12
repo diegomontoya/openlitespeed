@@ -100,7 +100,7 @@ am__v_AR_1 =
 libedio_a_AR = $(AR) $(ARFLAGS)
 libedio_a_LIBADD =
 am_libedio_a_OBJECTS = reactorindex.$(OBJEXT) fdindex.$(OBJEXT) \
-	kqueuer.$(OBJEXT) epoll.$(OBJEXT)  \
+	kqueuer.$(OBJEXT) epoll.$(OBJEXT) rtsigio.$(OBJEXT) \
 	ediostream.$(OBJEXT) outputbuf.$(OBJEXT) cacheos.$(OBJEXT) \
 	inputstream.$(OBJEXT) bufferedos.$(OBJEXT) \
 	outputstream.$(OBJEXT) flowcontrol.$(OBJEXT) iochain.$(OBJEXT) \
@@ -276,7 +276,7 @@ top_srcdir = @top_srcdir@
 noinst_LIBRARIES = libedio.a
 INCLUDES = -I$(top_srcdir)/src
 libedio_a_METASOURCES = AUTO
-libedio_a_SOURCES = reactorindex.cpp fdindex.cpp kqueuer.cpp epoll.cpp ediostream.cpp outputbuf.cpp cacheos.cpp inputstream.cpp bufferedos.cpp outputstream.cpp flowcontrol.cpp iochain.cpp multiplexerfactory.cpp eventreactor.cpp poller.cpp multiplexer.cpp pollfdreactor.cpp lookupfd.cpp devpoller.cpp
+libedio_a_SOURCES = reactorindex.cpp fdindex.cpp kqueuer.cpp epoll.cpp rtsigio.cpp ediostream.cpp outputbuf.cpp cacheos.cpp inputstream.cpp bufferedos.cpp outputstream.cpp flowcontrol.cpp iochain.cpp multiplexerfactory.cpp eventreactor.cpp poller.cpp multiplexer.cpp pollfdreactor.cpp lookupfd.cpp devpoller.cpp
 all: all-am
 
 .SUFFIXES:
@@ -345,6 +345,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poller.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pollfdreactor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/reactorindex.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rtsigio.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
