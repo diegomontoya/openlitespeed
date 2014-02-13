@@ -6,7 +6,7 @@ ip route | while read p; do ip route change $p initcwnd 20; done
 #use tcmalloc if exists
 JEMALLOC1=/usr/local/lib/libjemalloc.so.1_DISABLED
 JEMALLOC0=/usr/lib64/libjemalloc.so.1_DISABLED
-TCMALLOC0=/usr/local/lib/libtcmalloc_minimal.so.4
+TCMALLOC0=/usr/local/lib/libtcmalloc_minimal.so.4_DISABLED
 
 if [ -e $TCMALLOC0 ];
 then
