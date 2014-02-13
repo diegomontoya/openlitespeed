@@ -1,13 +1,20 @@
 #!/bin/sh
 
-#make sure initcwd is set to 12
-ip route | while read p; do ip route change $p initcwnd 12; done
+#make sure initcwd is set to 20
+ip route | while read p; do ip route change $p initcwnd 20; done
 
-#use jemalloc if exists
-JEMALLOC1=/usr/local/lib/libjemalloc.so.1
-JEMALLOC0=/usr/lib64/libjemalloc.so.1
+#use tcmalloc if exists
+JEMALLOC1=/usr/local/lib/libjemalloc.so.1_DISABLED
+JEMALLOC0=/usr/lib64/libjemalloc.so.1_DISABLED
+TCMALLOC0=/usr/local/lib/libtcmalloc_minimal.so.4
 
-if [ -e $JEMALLOC1 ];
+if [ -e $TCMALLOC0 ];
+then
+   LD_PRELOAD=$TCMALLOC0
+   export LD_PRELOAD
+   echo "Using tcmalloc/Package"
+   echo $LD_PRELOAD
+elif [ -e $JEMALLOC1 ];
 then
    LD_PRELOAD=$JEMALLOC1
    export LD_PRELOAD
