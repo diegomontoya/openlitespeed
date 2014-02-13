@@ -63,6 +63,9 @@ public:
         FILETYPE_ASN1
     };
 
+    //xing
+    int handshake_buffer_set = 0;
+
     explicit SSLContext( int method = SSL_ALL );
     ~SSLContext();
     SSL_CTX* get() const    {   return m_pCtx;  }
