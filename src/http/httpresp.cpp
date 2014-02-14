@@ -187,7 +187,7 @@ void HttpResp::finalizeHeader( int ver, int code, const HttpVHost *vhost )
         if( !m_iSSL && str.len() > 0 )
             appendHeader("Alternate-Protocol", 18, str.c_str(), str.len());
 
-        appendHeader("Strict-Transport-Security", 25, "max-age=16070400; includeSubDomains", 35);
+        appendHeader("Strict-Transport-Security", 25, "max-age=31536000", 16);
     }
     m_respHeaders.getHeaders(&m_iovec);
     
