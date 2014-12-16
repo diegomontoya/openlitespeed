@@ -1389,8 +1389,12 @@ int HttpServerBuilder::configContext( HttpVHost *pVHost, const XmlNode *pContext
 int HttpServerBuilder::configContextRewriteRule( HttpVHost *pVHost,
         HttpContext *pContext, char *pRule )
 {
-    RewriteRuleList *pRuleList = new RewriteRuleList();
-
+    RewriteRuleList *pRuleList;
+    if ( !pRule )
+        return 0;
+    AutoStr rule( pRule );
+    pRule = rule.buf();
+    pRuleList = new RewriteRuleList();
     if ( pRuleList )
     {
         RewriteRule::setLogger( NULL, LogIdTracker::getLogId() );
@@ -1672,7 +1676,7 @@ int HttpServerBuilder::configWebsocket( HttpVHost *pVHost, const XmlNode *pWebso
 
     GSockAddr gsockAddr;
     gsockAddr.parseAddr( pAddress );
-    pContext->setGSockAddr( gsockAddr );
+    pContext->setWebSockAddr( gsockAddr );
     return 0;
 }
 
@@ -3886,7 +3890,7 @@ int HttpServerBuilder::initErrorLog2( HttpLogSource &logSource, const XmlNode *p
         logSource.setLogLevel( pValue );
 
     off_t rollSize =
-        m_pCurConfigCtx->getLongValue( pNode, "rollingSize", 1024 * 1024,
+        m_pCurConfigCtx->getLongValue( pNode, "rollingSize", 0,
                                        INT_MAX, 1024 * 10240 );
     int days = m_pCurConfigCtx->getLongValue( pNode, "keepDays", 0,
                LLONG_MAX, 30 );

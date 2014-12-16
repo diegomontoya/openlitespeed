@@ -75,7 +75,6 @@ ExtWorker * ExtAppSubRegistry::addWorker( int type, const char * pName )
             pApp = newWorker( type, pName );
         if ( pApp )
         {
-            pApp->setMultiplexer( HttpGlobals::getMultiplexer() );
             m_pRegistry->insert( pApp->getName(), pApp );
         }
         return pApp;
@@ -172,34 +171,26 @@ void ExtAppSubRegistry::clear()
     m_pOldWorkers->release_objects();
 }
 
-#include <unistd.h>
-#include <stdio.h>
-int ExtAppSubRegistry::generateRTReport( int format, int wroteJsonExt, int fd, int type )
+int ExtAppSubRegistry::generateRTReport( int fd, int type )
 {
     static const char * s_pTypeName[] =
     {
         "CGI",
-        "FASTCGI",
-        "PROXY",
-        "SERVLET",
+        "FastCGI",
+        "Proxy",
+        "Servlet",
         "LSAPI",
-        "LOGGER"
+        "Logger"
     };
-
+        
     ExtAppMap::iterator iter;
-    int tmpJsonExt = 0;
     for( iter = m_pRegistry->begin();
         iter != m_pRegistry->end();
-         iter = m_pRegistry->next( iter )
-        )
+        iter = m_pRegistry->next( iter ) )
     {
-        tmpJsonExt = iter.second()->generateRTReport( format, wroteJsonExt, fd, s_pTypeName[ type ] );
-
-        if( wroteJsonExt == 0 && tmpJsonExt == 1 )
-                wroteJsonExt = 1;
+        iter.second()->generateRTReport( fd, s_pTypeName[ type ] );
     }
-
-    return wroteJsonExt;
+    return 0;
 }
 
 
@@ -344,27 +335,13 @@ void ExtAppRegistry::runOnStartUp()
 }
 
 
-int ExtAppRegistry::generateRTReport(int format, int fd )
+int ExtAppRegistry::generateRTReport( int fd )
 {
-    int wroteJsonExt = 0;
-
-    if( format == 1)
-        write( fd, "\"EXTAPP\":[\n", 11 );
-
-    for( int i = 0, tmpJsonExt = 0; i < EA_NUM_APP; ++i)
+    for( int i = 0; i < EA_NUM_APP; ++i )
     {
         if ( i != EA_LOGGER )
-        {
-            tmpJsonExt = s_registry[i]()->generateRTReport(format, wroteJsonExt, fd, i );
-
-            if( wroteJsonExt == 0 && tmpJsonExt == 1 )
-                wroteJsonExt = 1;
-        }
+            s_registry[i]()->generateRTReport( fd, i );
     }
-
-    if( format == 1)
-        write( fd, "\n],\n", 4 );
-
     return 0;
 }
 

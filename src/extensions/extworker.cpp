@@ -32,7 +32,6 @@
 
 ExtWorker::ExtWorker()
     : m_pConfig( NULL )
-    , m_pMultiplexer( NULL )
     , m_iRole( EXTAPP_RESPONDER )
     , m_iMultiplexConns( 0 )
     , m_iWantManagementInfo( 1 )
@@ -449,7 +448,7 @@ void ExtWorker::onTimer()
 
 #include <http/httpvhost.h>
 #include <stdio.h>
-int ExtWorker::generateRTReport( int format, int wroteJsonExt, int fd, const char * pTypeName )
+int ExtWorker::generateRTReport( int fd, const char * pTypeName )
 {
     char * p;
     char achBuf[4096];
@@ -460,40 +459,19 @@ int ExtWorker::generateRTReport( int format, int wroteJsonExt, int fd, const cha
     int inUseConn = m_connPool.getTotalConns() - m_connPool.getFreeConns();
     const HttpVHost * pVHost = m_pConfig->getVHost();
     if (( !pVHost || strcmp( pVHost->getName(), DEFAULT_ADMIN_SERVER_NAME) != 0 )&&
-        ( m_connPool.getTotalConns() >= 0 )&&( m_iState != ST_NOTSTARTED ))
+        ( m_connPool.getTotalConns() > 0 )&&( m_iState != ST_NOTSTARTED )) 
     
     {
-
-        if(format == 0)
-        {
-                p += safe_snprintf( p, &achBuf[4096] - p,
-                "EXTAPP [%s] [%s] [%s]: CMAXCONN: %d, EMAXCONN: %d, "
-                "POOL_SIZE: %d, INUSE_CONN: %d, "
-                "IDLE_CONN: %d, WAITQUE_DEPTH: %d, "
-                "REQ_PER_SEC: %d, TOT_REQS: %d\n",
-                pTypeName, (pVHost)?pVHost->getName():"", m_pConfig->getName(),
-                m_pConfig->getMaxConns(), m_connPool.getMaxConns(),
-                m_connPool.getTotalConns(), inUseConn,
-                m_connPool.getFreeConns(), m_reqQueue.size(),
-                m_reqStats.getRPS(), m_reqStats.getTotal() );
-        }
-        else if(format == 1)
-        {
-                p += safe_snprintf( p, &achBuf[4096] - p,
-                "%s{\"TYPE\":\"%s\",\"VHOST\":\"%s\",\"NAME\":\"%s\",\"CMAX\":%d,\"EMAX\":%d,"
-                "\"POOL\": %d,\"ACTIVE\":%d,"
-                "\"IDLE\":%d,\"QUEUE\":%d,"
-                "\"REQ_RATE\":%d,\"REQ_COUNT\":%d}",
-                wroteJsonExt == 1 ? ",\n\t" : "\n\t",
-                pTypeName, (pVHost)?pVHost->getName():"", m_pConfig->getName(),
-                m_pConfig->getMaxConns(), m_connPool.getMaxConns(),
-                m_connPool.getTotalConns(), inUseConn,
-                m_connPool.getFreeConns(), m_reqQueue.size(),
-                m_reqStats.getRPS(), m_reqStats.getTotal() );
-
-                wroteJsonExt = 1;
-        }
-
+        p += safe_snprintf( p, &achBuf[4096] - p,
+                    "EXTAPP [%s] [%s] [%s]: CMAXCONN: %d, EMAXCONN: %d, "
+                    "POOL_SIZE: %d, INUSE_CONN: %d, "
+                    "IDLE_CONN: %d, WAITQUE_DEPTH: %d, "
+                    "REQ_PER_SEC: %d, TOT_REQS: %d\n",
+                    pTypeName, (pVHost)?pVHost->getName():"", m_pConfig->getName(),
+                    m_pConfig->getMaxConns(), m_connPool.getMaxConns(),
+                    m_connPool.getTotalConns(), inUseConn,
+                    m_connPool.getFreeConns(), m_reqQueue.size(),
+                    m_reqStats.getRPS(), m_reqStats.getTotal() );
         write( fd, achBuf, p - achBuf );
     }
     m_reqStats.reset();
@@ -558,7 +536,7 @@ int ExtWorker::generateRTReport( int format, int wroteJsonExt, int fd, const cha
 //                 m_pConfig->getURL() ));
 //        stop();
 //    }
-    return wroteJsonExt;
+    return 0;
 }
 
 

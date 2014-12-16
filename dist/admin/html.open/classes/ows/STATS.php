@@ -53,11 +53,16 @@ class STATS {
 	}
 
 	function parse_litespeed() {
-        $content = "";
 
 		for ( $i = 1 ; $i <= $this->processes ; $i++ )
 		{
-			$content .= file_get_contents("{$this->report_path}.rtreport.{$i}");
+			if ( $i > 1 ) {
+				$content .= file_get_contents("{$this->report_path}.rtreport.{$i}");
+			}
+			else {
+				$content = file_get_contents("{$this->report_path}.rtreport");
+			}
+			
 		}
 		$result = array();
 		$this->blocked_ip = array();

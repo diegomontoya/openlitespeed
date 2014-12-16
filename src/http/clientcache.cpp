@@ -169,7 +169,7 @@ void ClientCache::clean()
     clean( &m_v6 );
 }
 
-int ClientCache::writeBlockedIP( int format, AutoBuf * pBuf, Cache * pCache )
+int ClientCache::writeBlockedIP( AutoBuf * pBuf, Cache * pCache )
 {
     ClientInfo * pInfo;
     Cache::iterator iter;
@@ -177,25 +177,14 @@ int ClientCache::writeBlockedIP( int format, AutoBuf * pBuf, Cache * pCache )
     char *p = achBuf;
     char * pEnd = p + sizeof( achBuf );
     int len;
-    for( iter = pCache->begin(); iter != pCache->end(); )
+    for( iter = pCache->begin(); iter != pCache->end(); iter = pCache->next( iter ))
     {
         pInfo = iter.second();
         if (( pInfo )&& (pInfo->getAccess() == AC_BLOCK ))
         {
-           if( format == 1)
-                *p++ = '"';
-
             memmove( p, pInfo->getAddrString(), pInfo->getAddrStrLen() );
             p += pInfo->getAddrStrLen();
-
-            if( format == 1)
-                *p++ = '"';
-
-            iter = pCache->next( iter );
-
-            if( iter != pCache->end() )
-                *p++ = ',';
-
+            *p++ = ',';
             if ( pEnd - p < 1024 )
             {
                 len = p - achBuf;
@@ -204,8 +193,6 @@ int ClientCache::writeBlockedIP( int format, AutoBuf * pBuf, Cache * pCache )
                 p = achBuf;
             }
         }
-        else
-            iter = pCache->next( iter );
     }
     len = p - achBuf;
     if ( len > 0 )
@@ -214,32 +201,13 @@ int ClientCache::writeBlockedIP( int format, AutoBuf * pBuf, Cache * pCache )
         return 0;
 }
 
-int ClientCache::generateBlockedIPReport( int format, int fd )
+int ClientCache::generateBlockedIPReport( int fd )
 {
-    //waste of resources..test disable
-    return 0;
-    
     AutoBuf buf(1024);
-
-    if( format == 0 )
-    {
-        buf.append( "BLOCKED_IP: ", 12 );
-        writeBlockedIP( format, &buf, &m_v4 );
-        writeBlockedIP( format, &buf, &m_v6 );
-        buf.append( '\n' );
-    }
-    else if( format == 1 )
-    {
-         buf.append( "\"BLOCKED_IP\":{\n", 15 );
-         buf.append( "\t\"IPV4\":[", 9 );
-         writeBlockedIP( format, &buf, &m_v4 );
-         buf.append( "],\n", 3 );
-         buf.append( "\t\"IPV6\":[", 9 );
-         writeBlockedIP( format, &buf, &m_v6 );
-         buf.append( "]\n", 2 );
-         buf.append( "}\n", 2 );
-    }
-    
+    buf.append( "BLOCKED_IP: ", 12 );
+    writeBlockedIP( &buf, &m_v4 );
+    writeBlockedIP( &buf, &m_v6 );
+    buf.append( '\n' );
     write( fd, buf.begin(), buf.size() );
     return 0;
 }

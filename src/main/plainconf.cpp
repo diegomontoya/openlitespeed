@@ -231,7 +231,6 @@ static plainconfKeywords sKeywords[] = {
         {"servername",        ""},
         {"setuidmode",        ""},
         {"showversionnumber",        ""},
-        {"reportformat",        ""},
         {"sitealiases",        ""},
         {"sitedomain",        ""},
         {"smartkeepalive",        ""},

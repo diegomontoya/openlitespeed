@@ -1,33 +1,5 @@
 #!/bin/sh
 
-#make sure initcwd is set to 20
-ip route | while read p; do ip route change $p initcwnd 20; done
-
-#use tcmalloc if exists
-JEMALLOC1=/usr/local/lib/libjemalloc.so.1_DISABLED
-JEMALLOC0=/usr/lib64/libjemalloc.so.1_DISABLED
-TCMALLOC0=/usr/local/lib/libtcmalloc_minimal.so.4_DISABLED
-
-if [ -e $TCMALLOC0 ];
-then
-   LD_PRELOAD=$TCMALLOC0
-   export LD_PRELOAD
-   echo "Using tcmalloc/Package"
-   echo $LD_PRELOAD
-elif [ -e $JEMALLOC1 ];
-then
-   LD_PRELOAD=$JEMALLOC1
-   export LD_PRELOAD
-   echo "Using jemalloc/Package"
-   echo $LD_PRELOAD
-elif [ -e $JEMALLOC0 ];
-then
-   LD_PRELOAD=$JEMALLOC0
-   export LD_PRELOAD
-   echo "Using jemalloc/Self Compiled"
-   echo $LD_PRELOAD
-fi
-
 # resolve links - $0 may be a softlink
 PROG="$0"
 PIDFILE=/tmp/lshttpd/lshttpd.pid

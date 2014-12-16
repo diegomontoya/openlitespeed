@@ -60,51 +60,23 @@ class HttpVHostMapImpl: public HashStringMap<HttpVHost *>
                 iter = next( iter );
         }
     }
-    int writeRTReport( int format, int fd ) const
+    int writeRTReport( int fd ) const
     {
         const_iterator iter;
         const_iterator iterEnd = end();
         char achBuf[1024];
-
-        if( format == 1 )
-            write( fd, "\"REQUEST\":[\n", 12 );
-
-        for( iter = begin(); iter != iterEnd; )
+        for( iter = begin(); iter != iterEnd; iter = next( iter ) )
         {
             iter.second()->getReqStats()->finalizeRpt();
-
-            int len;
-
-            if( format == 0 )
-            {
-                len = safe_snprintf( achBuf, 1024, "REQ_RATE [%s]: "
-                            "REQ_PROCESSING: %d, REQ_PER_SEC: %d, TOT_REQS: %d\n",
-                            iter.first(), iter.second()->getRef(),
-                            iter.second()->getReqStats()->getRPS(),
-                            iter.second()->getReqStats()->getTotal() );
-            }
-            else if( format == 1)
-            {
-                len = safe_snprintf( achBuf, 1024, "\t{\"VHOST\":\"%s\","
-                            "\"REQ_ACTIVE\":%d,\"REQ_RATE\":%d,\"REQ_COUNT\":%d}",
-                            iter.first(), iter.second()->getRef(),
-                            iter.second()->getReqStats()->getRPS(),
-                            iter.second()->getReqStats()->getTotal() );
-            }
-
+            int len = safe_snprintf( achBuf, 1024, "REQ_RATE [%s]: "
+                        "REQ_PROCESSING: %d, REQ_PER_SEC: %d, TOT_REQS: %d\n",
+                        iter.first(), iter.second()->getRef(),
+                        iter.second()->getReqStats()->getRPS(),
+                        iter.second()->getReqStats()->getTotal() );
             iter.second()->getReqStats()->reset();
             if ( ::write( fd, achBuf, len ) != len )
                 return -1;
-
-            iter = next( iter );
-
-            if( format == 1 && iter != iterEnd )
-                write( fd, ",\n", 2);
         }
-
-        if( format == 1 )
-            write( fd, "\n],\n", 4 );
-
         return 0;
     }
 
@@ -251,9 +223,9 @@ void HttpVHostMap::offsetChroot( const char * pChroot, int len )
 }
 
 
-int HttpVHostMap::writeRTReport( int format, int fd ) const
+int HttpVHostMap::writeRTReport( int fd ) const
 {
-    return m_impl->writeRTReport( format, fd );
+    return m_impl->writeRTReport( fd );
 }
 
 int HttpVHostMap::writeStatusReport( int fd ) const
