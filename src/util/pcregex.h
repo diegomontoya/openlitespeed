@@ -55,7 +55,7 @@ class Pcregex       //pcreapi
     int           m_iSubStr;
     //is jit compiled...passing JIT to study does NOT mean JIT == true...
     //some regex are not JIT compatible
-    int          m_jit
+    int          m_jit;
     
 public: 
     Pcregex();
