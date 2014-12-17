@@ -64,6 +64,7 @@ Pcregex::Pcregex()
     : m_regex( NULL )
     , m_extra( NULL )
     , m_iSubStr( 0 )
+    , m_jit( 0 )
 {
 }
 Pcregex::~Pcregex()
@@ -116,6 +117,12 @@ int Pcregex::compile(const char * regex, int options, int matchLimit, int recurs
         m_extra->flags |= PCRE_EXTRA_MATCH_LIMIT_RECURSION;
     }
     pcre_fullinfo(m_regex, m_extra, PCRE_INFO_CAPTURECOUNT, &m_iSubStr);
+
+#if defined( _USE_PCRE_JIT_)&&!defined(__sparc__) && !defined(__sparc64__) && defined( PCRE_CONFIG_JIT )
+    //get jit compiled success info
+     pcre_fullinfo(m_regex, m_extra, PCRE_INFO_JIT, &m_jit);
+#endif
+
     ++m_iSubStr;
     return 0;
 }
