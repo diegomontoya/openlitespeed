@@ -42,21 +42,30 @@ void Pcregex::release_jit_stack( void * pValue)
     pcre_jit_stack_free((pcre_jit_stack *) pValue );
 }
 
-
-pcre_jit_stack * Pcregex::get_jit_stack()
+pcre_jit_stack * Pcregex::get_jit_stack(void * inJit)
 {
-    pcre_jit_stack *jit_stack;
+    //pcre_jit_stack * real_inJit = (pcre_jit_stack *)inJit;
 
-    if ( !s_jit_key_inited )
+    if ( !s_jit_key_inited ) {
         init_jit_stack();
-    jit_stack = (pcre_jit_stack *)pthread_getspecific( s_jit_stack_key );
-    if ( !jit_stack )
-    {
-        jit_stack = (pcre_jit_stack *)pcre_jit_stack_alloc(32*1024, 512*1024);
+    }
+
+     pcre_jit_stack * jit_stack = (pcre_jit_stack *) pthread_getspecific( s_jit_stack_key );
+
+    if ( !jit_stack ) {
+        //32KB to 1MB jit stack...
+        jit_stack = (pcre_jit_stack *) pcre_jit_stack_alloc(32*1024, 1024*1024);
         pthread_setspecific( s_jit_stack_key, jit_stack );
     }
+
+    //only pass back pthread stack if different...
+//    if ( real_inJit != NULL && real_inJit == jit_stack ) {
+//            return real_inJit;
+//    }
+
     return jit_stack;
 }
+
 #endif
 #endif
 
@@ -64,7 +73,6 @@ Pcregex::Pcregex()
     : m_regex( NULL )
     , m_extra( NULL )
     , m_iSubStr( 0 )
-    , m_jit( 0 )
 {
 }
 Pcregex::~Pcregex()
@@ -120,7 +128,12 @@ int Pcregex::compile(const char * regex, int options, int matchLimit, int recurs
 
 #if defined( _USE_PCRE_JIT_)&&!defined(__sparc__) && !defined(__sparc64__) && defined( PCRE_CONFIG_JIT )
     //get jit compiled success info
-     pcre_fullinfo(m_regex, m_extra, PCRE_INFO_JIT, &m_jit);
+    int jit;
+    pcre_fullinfo(m_regex, m_extra, PCRE_INFO_JIT, &jit);
+
+    if ( jit == 1 ) {
+        pcre_assign_jit_stack( m_extra, Pcregex::get_jit_stack, NULL);
+    }
 #endif
 
     ++m_iSubStr;

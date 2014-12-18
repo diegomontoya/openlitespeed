@@ -53,9 +53,6 @@ class Pcregex       //pcreapi
     pcre        * m_regex;
     pcre_extra  * m_extra;
     int           m_iSubStr;
-    //is jit compiled...passing JIT to study does NOT mean JIT == true...
-    //some regex are not JIT compatible
-    int          m_jit;
     
 public: 
     Pcregex();
@@ -63,7 +60,7 @@ public:
 #ifdef _USE_PCRE_JIT_
 #if !defined(__sparc__) && !defined(__sparc64__)
     static void init_jit_stack();
-    static pcre_jit_stack * get_jit_stack();
+    static pcre_jit_stack * get_jit_stack(void * inJit);
     static void release_jit_stack( void * pValue);
 #endif
 #endif
@@ -71,13 +68,6 @@ public:
     int  exec( const char *subject, int length, int startoffset,
                 int options, int *ovector, int ovecsize ) const
     {
-
-#if defined( _USE_PCRE_JIT_)&&!defined(__sparc__) && !defined(__sparc64__) && defined( PCRE_CONFIG_JIT )
-        //only assign jit stack if jit was enabled AND successfully compiled via study()
-        if ( m_jit == 1 ) {
-            pcre_assign_jit_stack( m_extra, NULL, get_jit_stack());
-        }
-#endif
 
         return pcre_exec( m_regex, m_extra, subject, length, startoffset,
                         options, ovector, ovecsize );
