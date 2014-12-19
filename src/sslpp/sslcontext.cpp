@@ -251,7 +251,7 @@ int SSLContext::init( int iMethod )
     if ( m_pCtx != NULL )
         return 0;
     SSL_METHOD * meth;
-    initSSL()
+    initSSL();
     //why?
 //    if ( initSSL() )
 //        return -1;
