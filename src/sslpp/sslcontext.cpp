@@ -219,9 +219,12 @@ int SSLContext::init( int iMethod )
 
 
         //increase defaults
-	    setSessionCacheMode( SSL_SESS_CACHE_SERVER | SSL_SESS_CACHE_NO_AUTO_CLEAR);
-        setSessionTimeout( 100800 ); 
-        setSessionCacheSize ( 0 );
+//	    setSessionCacheMode( SSL_SESS_CACHE_SERVER | SSL_SESS_CACHE_NO_AUTO_CLEAR);
+//	    setSessionTimeout( 100800 );
+//        setSessionCacheSize ( 0 );
+
+        setSessionCacheMode( SSL_SESS_CACHE_OFF )
+
 
         //SSL_MODE_CBC_RECORD_SPLITTING protects against CBC beast attacks...
         SSL_CTX_set_mode( m_pCtx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER | SSL_MODE_RELEASE_BUFFERS | SSL_MODE_CBC_RECORD_SPLITTING);
