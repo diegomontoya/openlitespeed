@@ -223,7 +223,7 @@ int SSLContext::init( int iMethod )
 //	    setSessionTimeout( 100800 );
 //        setSessionCacheSize ( 0 );
 
-        setSessionCacheMode( SSL_SESS_CACHE_OFF )
+        setSessionCacheMode( SSL_SESS_CACHE_OFF );
 
 
         //SSL_MODE_CBC_RECORD_SPLITTING protects against CBC beast attacks...
