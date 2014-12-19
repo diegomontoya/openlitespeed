@@ -531,12 +531,11 @@ SL_CTX_set_verify(ctx, nVerify,  ssl_callback_SSLVerify);
 
 int SSLContext::initSSL()
 {
+    OPENSSL_config(NULL);
     SSL_load_error_strings();
     SSL_library_init();
-#ifndef SSL_OP_NO_COMPRESSION
-    /* workaround for OpenSSL 0.9.8 */
-    sk_SSL_COMP_zero(SSL_COMP_get_compression_methods());
-#endif
+    OpenSSL_add_all_algorithms();
+
     return seedRand( 512 );
 }
 

@@ -21,6 +21,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <pthread.h>
+#include <http/httplog.h>
 
 #ifndef PCRE_STUDY_JIT_COMPILE
 #define PCRE_STUDY_JIT_COMPILE 0
@@ -134,6 +135,7 @@ int Pcregex::compile(const char * regex, int options, int matchLimit, int recurs
     if ( jit == 1 ) {
         pcre_assign_jit_stack( m_extra, Pcregex::get_jit_stack, NULL);
     }
+     LOG_NOTICE(("jit value: [%d]",jit));
 #endif
 
     ++m_iSubStr;

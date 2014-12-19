@@ -27,6 +27,7 @@ SSLEngine::~SSLEngine(){
 
 int SSLEngine::init( const char * pID )
 {
+#ifndef OPENSSL_NO_ENGINE
     /* Load all bundled ENGINEs into memory and make them visible */
     if ( !pID )
         return 0;
@@ -56,10 +57,16 @@ int SSLEngine::init( const char * pID )
     /* Release the structural reference from ENGINE_by_id() */
     ENGINE_free(e);
     return ret;
+#else
+    //not supported...boringssl
+    return 0;
+#endif
 }
 
 void SSLEngine::shutdown()
 {
+#ifndef OPENSSL_NO_ENGINE
     ENGINE_cleanup();
+#endif
 }
 
