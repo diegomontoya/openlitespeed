@@ -31,6 +31,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <config.h>
+#include <http/httplog.h>
+
 //#include "http/vhostmap.h"
 
 
@@ -112,10 +114,15 @@ int SSLContext::seedRand(int len)
 
 static void SSLConnection_ssl_info_cb( const SSL *pSSL, int where, int ret)
 {
-    //if ((where & SSL_CB_HANDSHAKE_START) != 0) 
-    //{
-    //    //close connection, may not needed for 0.9.8m and later
-    //}
+    if ((where & SSL_CB_HANDSHAKE_START) != 0)
+    {
+        //close connection, may not needed for 0.9.8m and later
+//        SSL_shutdown(pSSL)
+//LOG_NOTICE(("renegotiation? should not happen often...jit"));
+    }
+
+
+
 #ifdef SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS
     if ((where & SSL_CB_HANDSHAKE_DONE) != 0) 
     {
@@ -268,12 +275,9 @@ int SSLContext::init( int iMethod )
         setSessionTimeout( 100800 ); 
         setSessionCacheSize ( 1024 * 1024 ); 
 
-        
-        SSL_CTX_set_mode( m_pCtx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
-#ifdef SSL_MODE_RELEASE_BUFFERS
-            |SSL_MODE_RELEASE_BUFFERS
-#endif
-        );
+        //SSL_MODE_CBC_RECORD_SPLITTING protects against CBC beast attacks...
+        SSL_CTX_set_mode( m_pCtx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER | SSL_MODE_RELEASE_BUFFERS | SSL_MODE_CBC_RECORD_SPLITTING);
+
         if ( m_iRenegProtect )
         {
             setOptions( SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION );
