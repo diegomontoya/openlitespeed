@@ -101,7 +101,7 @@ public:
     int addCRL( const char * pCRLFile, const char * pCRLPath);
     int enableSpdy( int level );
     int getEnableSpdy() const   {   return m_iEnableSpdy;   } 
-    
+
     int  initECDH();
     int  initDH( const char * pFile );
 };

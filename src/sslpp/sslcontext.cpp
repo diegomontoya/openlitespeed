@@ -251,8 +251,10 @@ int SSLContext::init( int iMethod )
     if ( m_pCtx != NULL )
         return 0;
     SSL_METHOD * meth;
-    if ( initSSL() )
-        return -1;
+    initSSL()
+    //why?
+//    if ( initSSL() )
+//        return -1;
     m_iMethod = iMethod;
     m_iEnableSpdy = 0;
     meth = (SSL_METHOD *)SSLv23_method();
@@ -321,7 +323,8 @@ void SSLContext::release()
 SSL* SSLContext::newSSL()
 {
     init( m_iMethod );
-    seedRand( 128 );
+    //why?
+    //seedRand( 128 );
     return SSL_new(m_pCtx);
 }
 
@@ -542,7 +545,9 @@ int SSLContext::initSSL()
     SSL_load_error_strings();
     SSL_library_init();
 
-    return seedRand( 512 );
+    //why?
+    //return seedRand( 512 );
+    return 0;
 }
 
 /*
