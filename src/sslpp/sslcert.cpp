@@ -18,6 +18,7 @@
 #include "sslcert.h"
 
 #include <openssl/ssl.h>
+#include <openssl/bio.h>
 
 SSLCert::SSLCert()
     : m_cert( NULL )
@@ -96,8 +97,9 @@ int SSLCert::PEMWriteCert( X509 * pCert, char * pBuf, int len )
     if ( bio == NULL )
         return -1;
     PEM_write_bio_X509( bio, pCert );
-    n = BIO_pending( bio );
-    if ( pBuf && len >= n )
+//    n = BIO_pending( bio );
+n = BIO_ctrl( bio, BIO_CTRL_PENDING, 0, NULL);
+if ( pBuf && len >= n )
     {
         n = BIO_read( bio, pBuf, n );
     }

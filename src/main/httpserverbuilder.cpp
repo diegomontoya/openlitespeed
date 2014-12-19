@@ -87,7 +87,6 @@
 #include <http/httpglobals.h>
 #include <http/clientcache.h>
 #include "plainconf.h"
-#include "sslpp/sslocspstapling.h"
 #define MAX_URI_LEN  1024
 
 #define VH_ROOT     "VH_ROOT"
@@ -6023,24 +6022,6 @@ SSLContext *HttpServerBuilder::newSSLContext( const XmlNode *pNode )
         configCRL( pNode, pSSL );
     }
 
-    if ( ( m_pCurConfigCtx->getLongValue( pNode, "enableStapling", 0, 1, 0 )) 
-        && ( pCertFile != NULL ) )
-    {
-        if ( pSSL->getStapling() == NULL )
-        {
-            const char *pCombineCAfile = pNode->getChildValue( "ocspCACerts" );
-            char CombineCAfile[MAX_PATH_LEN];
-            if ( pCombineCAfile )
-            {
-                if ( m_pCurConfigCtx->getValidFile( CombineCAfile, pCombineCAfile, "Combine CA file" ) != 0 )
-                    return 0;
-                pSSL->setCertificateChainFile( CombineCAfile );
-            }
-            if ( pSSL->configStapling(pNode, pCAFile, achCert, m_pCurConfigCtx) == 0 )
-                 m_pCurConfigCtx->log_info( "Enable OCSP Stapling successful!");
-
-        }
-    }
     return pSSL;
 }
 

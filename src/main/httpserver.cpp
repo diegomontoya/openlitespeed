@@ -74,9 +74,6 @@
 #define STATUS_FILE         DEFAULT_TMP_DIR "/.status"
 #define FILEMODE            0644
 
-#include "sslpp/sslocspstapling.h"
-
-
 static int s_achPid[256];
 static int s_curPid = 0;
 

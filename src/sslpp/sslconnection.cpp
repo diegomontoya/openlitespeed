@@ -148,8 +148,9 @@ int SSLConnection::flush()
     if ( !pBIO )
         return 0;
     m_iWant = 0;
-    int ret = BIO_flush( pBIO );
-    if ( ret != 1 )   //1 means BIO_flush succeed.
+   // int ret = BIO_flush( pBIO );
+int ret = BIO_ctrl(pBIO,BIO_CTRL_FLUSH,0,NULL);
+if ( ret != 1 )   //1 means BIO_flush succeed.
     {
         return checkError( ret );
     }

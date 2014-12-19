@@ -22,6 +22,7 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
+#include <openssl/bio.h>
 
 #include <fcntl.h>
 #include <string.h>
@@ -30,7 +31,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <config.h>
-#include "sslocspstapling.h"
 //#include "http/vhostmap.h"
 
 
@@ -116,10 +116,12 @@ static void SSLConnection_ssl_info_cb( const SSL *pSSL, int where, int ret)
     //{
     //    //close connection, may not needed for 0.9.8m and later
     //}
+#ifdef SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS
     if ((where & SSL_CB_HANDSHAKE_DONE) != 0) 
     {
          pSSL->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
     }
+#endif
 }
 
 void SSLContext::setProtocol( int method )
@@ -260,9 +262,11 @@ int SSLContext::init( int iMethod )
 
         setOptions( SSL_OP_CIPHER_SERVER_PREFERENCE);
 
+
         //increase defaults
+	setSessionCacheMode( SSL_SESS_CACHE_SERVER | SSL_SESS_CACHE_NO_AUTO_CLEAR);
         setSessionTimeout( 100800 ); 
-        setSessionCacheSize ( 1024 * 40 ); 
+        setSessionCacheSize ( 1024 * 1024 ); 
 
         
         SSL_CTX_set_mode( m_pCtx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
@@ -291,7 +295,6 @@ SSLContext::SSLContext( int iMethod )
     , m_iMethod( iMethod )
     , m_iRenegProtect( 1 )
     , m_iEnableSpdy( 0 )
-    , m_pStapling( NULL )
 {
 }
 SSLContext::~SSLContext()
@@ -308,8 +311,6 @@ void SSLContext::release()
         m_pCtx = NULL;
         SSL_CTX_free( pCtx );
     }
-    if ( m_pStapling )
-        delete m_pStapling;
 }
 
 
@@ -394,10 +395,12 @@ int SSLContext::setCertificateChainFile( const char * pFile )
     unsigned long err;
     int n;
 
-    if ((bio = BIO_new(BIO_s_file_internal())) == NULL)
-        return 0;
-    if (BIO_read_filename(bio, pFile) <= 0) {
-        BIO_free(bio);
+    //if ((bio = BIO_new(BIO_s_file())) == NULL)
+      //  return 0;
+    //if (BIO_read_filename(bio, pFile) <= 0) {
+
+	if ((bio = BIO_new_file(pFile, "r")) == NULL) {
+  BIO_free(bio);
         return 0;
     }
     pExtraCerts=m_pCtx->extra_certs;
@@ -521,7 +524,8 @@ int SSLContext::setCipherList( const char * pList )
 
 /*
 SL_CTX_set_verify(ctx, nVerify,  ssl_callback_SSLVerify);
-    SSL_CTX_sess_set_new_cb(ctx,      ssl_callback_NewSessionCacheEntry);
+    SSL_CTX_sess_set_new_cb(ctx,      ssl_callback_NewSession
+CacheEntry);
     SSL_CTX_sess_set_get_cb(ctx,      ssl_callback_GetSessionCacheEntry);
     SSL_CTX_sess_set_remove_cb(ctx,   ssl_callback_DelSessionCacheEntry);
     SSL_CTX_set_tmp_rsa_callback(ctx, ssl_callback_TmpRSA);
@@ -531,10 +535,8 @@ SL_CTX_set_verify(ctx, nVerify,  ssl_callback_SSLVerify);
 
 int SSLContext::initSSL()
 {
-    OPENSSL_config(NULL);
     SSL_load_error_strings();
     SSL_library_init();
-    OpenSSL_add_all_algorithms();
 
     return seedRand( 512 );
 }
@@ -596,7 +598,8 @@ static RSA *load_key(const unsigned char *key, int keyLen, char *pass, int isPri
         pKey = PEM_read_bio_PrivateKey( bp, NULL, NULL, pass );
     if ( !pKey )
     {
-        ERR_print_errors( bio_err );
+	//boringssl has no err_print_errors
+        //ERR_print_errors( bio_err );
     }
     else
     {
@@ -841,28 +844,6 @@ int SSLContext::enableSpdy( int level )
 #endif
 
 
-static int sslCertificateStatus_cb(SSL *ssl, void *data)
-{
-    SslOcspStapling* pStapling = (SslOcspStapling*)data;
-    return pStapling->callback( ssl );
-}
 
 #include <util/xmlnode.h>
 
-int SSLContext::configStapling(const XmlNode *pNode,  
-                             const char *pCAFile, char *pachCert, ConfigCtx* pcurrentCtx)
-{
-    SslOcspStapling *pSslOcspStapling = new SslOcspStapling;
-
-    if (pSslOcspStapling->config(pNode, m_pCtx, pCAFile, pachCert, pcurrentCtx) == -1)
-    {
-        delete pSslOcspStapling;
-        return -1;
-    }
-    setStapling( pSslOcspStapling ) ;
-
-    SSL_CTX_set_tlsext_status_cb(m_pCtx, sslCertificateStatus_cb);
-    SSL_CTX_set_tlsext_status_arg(m_pCtx, m_pStapling);    
-
-    return 0; 
-}
