@@ -24,7 +24,6 @@
 typedef struct ssl_st SSL;
 typedef struct ssl_ctx_st SSL_CTX;
 
-class SslOcspStapling;
 class ConfigCtx;
 class XmlNode;
 
@@ -38,7 +37,7 @@ private:
     struct stat m_stKey;
     struct stat m_stCert;
     
-    SslOcspStapling * m_pStapling;
+
     
     SSLContext( const SSLContext& rhs ) {}
     void operator=( const SSLContext& rhs ) {}
@@ -102,10 +101,7 @@ public:
     int addCRL( const char * pCRLFile, const char * pCRLPath);
     int enableSpdy( int level );
     int getEnableSpdy() const   {   return m_iEnableSpdy;   } 
-    SslOcspStapling * getStapling () {  return m_pStapling; }
-    void setStapling (SslOcspStapling * pSslOcspStapling) {  m_pStapling = pSslOcspStapling;}
-    int configStapling(const XmlNode *pNode,  
-                       const char *pCAFile, char *pachCert, ConfigCtx* pcurrentCtx);
+    
     int  initECDH();
     int  initDH( const char * pFile );
 };
