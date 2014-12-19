@@ -58,60 +58,6 @@ long SSLContext::setSessionTimeout( long timeout )
     return SSL_CTX_set_timeout( m_pCtx, timeout );
 }
 
-int SSLContext::seedRand(int len)
-{
-    static int fd = open( "/dev/urandom", O_RDONLY|O_NONBLOCK );
-    char achBuf[2048];
-    int ret;
-    if ( fd >= 0 )
-    {
-        int toRead;
-        do
-        {
-            toRead = sizeof( achBuf );
-            if ( len < toRead )
-                toRead = len;
-            ret = read( fd, achBuf, toRead );
-            if ( ret > 0 )
-            {
-                RAND_seed( achBuf, ret );
-                len -= ret;
-            }
-        }while((len > 0 ) &&( ret == toRead ));
-        fcntl( fd, F_SETFD, FD_CLOEXEC );
-        //close( fd );
-    }
-    else
-    {
- #ifdef DEVRANDOM_EGD
-        /* Use an EGD socket to read entropy from an EGD or PRNGD entropy
-         * collecting daemon. */
-        static const char * egdsockets[] = { "/var/run/egd-pool", "/dev/egd-pool", "/etc/egd-pool" };
-        for (egdsocket = egdsockets; *egdsocket && n < len; egdsocket++)
-        {
-
-            ret = RAND_egd_bytes(*egdsocket, len);
-            if (ret > 0)
-                len -= ret;
-        }
-#endif
-    }
-    if ( len == 0 )
-        return 0;
-    if ( len > (int)sizeof( achBuf ) )
-        len = (int)sizeof( achBuf );
-    gettimeofday( (timeval *)achBuf, NULL);
-    ret = sizeof( timeval );
-    *(pid_t *)(achBuf + ret ) = getpid();   
-    ret += sizeof( pid_t );
-    *(uid_t *)( achBuf + ret ) = getuid();
-    ret += sizeof( uid_t );
-    if ( len > ret )
-        memmove( achBuf + ret, achBuf + sizeof( achBuf ) - len + ret, len - ret );
-    RAND_seed( achBuf, len );
-    return 0;
-}
-
 static void SSLConnection_ssl_info_cb( const SSL *pSSL, int where, int ret)
 {
     if ((where & SSL_CB_HANDSHAKE_START) != 0)
@@ -323,8 +269,7 @@ void SSLContext::release()
 SSL* SSLContext::newSSL()
 {
     init( m_iMethod );
-    //why?
-    //seedRand( 128 );
+
     return SSL_new(m_pCtx);
 }
 
@@ -545,8 +490,6 @@ int SSLContext::initSSL()
     SSL_load_error_strings();
     SSL_library_init();
 
-    //why?
-    //return seedRand( 512 );
     return 0;
 }
 

@@ -44,7 +44,6 @@ private:
 
     void release();
     int init( int method = SSL_ALL);
-    static int seedRand(int len);
     void updateProtocol( int method );
 
 public:
