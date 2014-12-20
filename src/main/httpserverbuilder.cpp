@@ -48,7 +48,6 @@
 #include <http/httpresp.h>
 
 #include <socket/gsockaddr.h>
-#include <sslpp/sslengine.h>
 #include <sslpp/sslcontext.h>
 
 #include <main/httpserver.h>
@@ -3668,13 +3667,7 @@ int HttpServerBuilder::initTuning( const XmlNode *pRoot )
     if ( val )
         FileCacheDataEx::setMaxMMapCacheSize( 0 );
 
-    const char *pValue = pNode->getChildValue( "SSLCryptoDevice" );
 
-    if ( SSLEngine::init( pValue ) == -1 )
-    {
-        currentCtx.log_warn( "Failed to initialize SSL Accelerator Device: %s,"
-                             " SSL hardware acceleration is disabled!", pValue );
-    }
 
     // GZIP compression
     config.setGzipCompress( m_pCurConfigCtx->getLongValue( pNode, "enableGzipCompress",
@@ -3691,7 +3684,8 @@ int HttpServerBuilder::initTuning( const XmlNode *pRoot )
         m_pCurConfigCtx->getLongValue( pNode, "gzipMinFileSize", 200, LONG_MAX, 300 ),
         m_pCurConfigCtx->getLongValue( pNode, "gzipMaxFileSize", 200, LONG_MAX, 1024 * 1024 )
     );
-    pValue = pNode->getChildValue( "gzipCacheDir" );
+
+    const char *pValue  = pNode->getChildValue( "gzipCacheDir" );
 
     if ( !pValue )
     {
