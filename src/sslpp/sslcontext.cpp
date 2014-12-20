@@ -62,9 +62,12 @@ static void SSLConnection_ssl_info_cb( const SSL *pSSL, int where, int ret)
 {
     if ((where & SSL_CB_HANDSHAKE_START) != 0)
     {
+
+        //TODO: Check handshakeCount++ here...and disconnect if >= 1
+
         //close connection, may not needed for 0.9.8m and later
-//        SSL_shutdown(pSSL)
-//LOG_NOTICE(("renegotiation? should not happen often...jit"));
+        //SSL_shutdown(pSSL)
+        //LOG_NOTICE(("renegotiation? should not happen often...jit"));
     }
 
 
@@ -72,6 +75,7 @@ static void SSLConnection_ssl_info_cb( const SSL *pSSL, int where, int ret)
 #ifdef SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS
     if ((where & SSL_CB_HANDSHAKE_DONE) != 0) 
     {
+        //TODO: Record handshakeCount++ here...
          pSSL->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
     }
 #endif
@@ -91,9 +95,10 @@ void SSLContext::setProtocol( int method )
 void SSLContext::updateProtocol( int method )
 {
     setOptions( SSL_OP_NO_SSLv2 );
+
     if ( !(method & SSL_v3) )
         setOptions( SSL_OP_NO_SSLv3 );
-    if ( !(method & SSL_TLSv1 ) ) 
+    if ( !(method & SSL_TLSv1 ) )
         setOptions( SSL_OP_NO_TLSv1 );
 #ifdef SSL_OP_NO_TLSv1_1
     if ( !(method & SSL_TLSv11 ) )
@@ -207,15 +212,13 @@ int SSLContext::init( int iMethod )
     m_pCtx = SSL_CTX_new (meth);
     if ( m_pCtx )
     {
-#ifdef SSL_OP_NO_COMPRESSION
-        /* OpenSSL >= 1.0 only */
-        SSL_CTX_set_options(m_pCtx, SSL_OP_NO_COMPRESSION);
-#endif
-        setOptions( SSL_OP_SINGLE_DH_USE|SSL_OP_ALL );
-        //setOptions( SSL_OP_NO_SSLv2 );
+
+        setOptions( SSL_OP_NO_COMPRESSION | SSL_OP_SINGLE_DH_USE | SSL_OP_ALL | SSL_OP_NO_SSLv2);
+
         updateProtocol( iMethod );
 
-        setOptions( SSL_OP_CIPHER_SERVER_PREFERENCE);
+        //this may be bad for mobile users (chrome) that prefer chacha20
+        //setOptions( SSL_OP_CIPHER_SERVER_PREFERENCE);
 
 
         //increase defaults
