@@ -33,7 +33,8 @@ int                    HttpGlobals::s_iMultiplexerType = 0;
 ConnLimitCtrl          HttpGlobals::s_connLimitCtrl;
 
 #include <http/clientcache.h>
-ClientCache            HttpGlobals::s_clients( 1000 );
+//increaase number of tracked clients...
+ClientCache            HttpGlobals::s_clients( 1024 * 1024 );
 
 
 #include <http/httpconnection.h>
