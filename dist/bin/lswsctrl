@@ -1,5 +1,8 @@
 #!/bin/sh
 
+#enable jemalloc
+export LD_PRELOAD=/usr/local/lib/libjemalloc.so
+
 # resolve links - $0 may be a softlink
 PROG="$0"
 PIDFILE=/tmp/lshttpd/lshttpd.pid

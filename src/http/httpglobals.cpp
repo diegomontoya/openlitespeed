@@ -36,7 +36,6 @@ ConnLimitCtrl          HttpGlobals::s_connLimitCtrl;
 //increaase number of tracked clients...
 ClientCache            HttpGlobals::s_clients( 1024 * 50 );
 
-
 #include <http/httpconnection.h>
 #include <http/httpconnpool.h>
 HttpConnPool::Pool  HttpConnPool::s_pool( 20, 20 );
