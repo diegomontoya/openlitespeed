@@ -234,6 +234,6 @@ public:
 };
 
 #define SPDY_MAX_DATAFRAM_SIZE    1048576
-#define SPDY_FCW_INIT_SIZE        1048576
+#define SPDY_FCW_INIT_SIZE        983040 //1048576 - 65536
 
 #endif // SPDYPROTOCOL_H
