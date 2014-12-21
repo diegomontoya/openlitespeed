@@ -32,6 +32,7 @@
 #define SPDY_CONN_FLAG_FLOW_CTRL        (1<<1)
 
 #define SPDY_STREAM_PRIORITYS          8
+#define SPDY_MAX_STREAMS               25
 
 typedef struct
 {
