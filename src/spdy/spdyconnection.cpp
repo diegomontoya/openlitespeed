@@ -821,7 +821,9 @@ int SpdyConnection::sendSettings(uint32_t uiMaxStreamNum, uint32_t uiWindowSize)
     if ( isFlowCtrl() )
     {
         sendWindowUpdateFrame( 0, SPDY_FCW_INIT_SIZE );
-        m_iDataInWindow += SPDY_FCW_INIT_SIZE;
+        m_iDataInWindow = SPDY_FCW_INIT_SIZE;
+        //TODO: why +=? and not juset =?
+        //m_iDataInWindow += SPDY_FCW_INIT_SIZE;
     }
     else
         flush();

@@ -233,7 +233,7 @@ public:
     uint32_t getID() const  { return ( ntohl(m_unFlagId.m_ui) & 0xFFFFFF); }
 };
 
-#define SPDY_MAX_DATAFRAM_SIZE    65536
-#define SPDY_FCW_INIT_SIZE        65536
+#define SPDY_MAX_DATAFRAM_SIZE    1048576
+#define SPDY_FCW_INIT_SIZE        1048576
 
 #endif // SPDYPROTOCOL_H
