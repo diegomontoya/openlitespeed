@@ -461,7 +461,9 @@ int HttpServerImpl::generateRTReport()
         LOG_ERR(( "Failed to generate the real time report!" ));
     }
     ret = ExtAppRegistry::generateRTReport( pAppender->getfd() );
-    ret = HttpGlobals::getClientCache()->generateBlockedIPReport( pAppender->getfd() );
+
+    //cpu hog..disable now..
+    //ret = HttpGlobals::getClientCache()->generateBlockedIPReport( pAppender->getfd() );
     
     pAppender->append( "EOF\n", 4 );
     pAppender->close();
