@@ -58,9 +58,7 @@ killwatch()
 
 start()
 {
-    if [ -f "get_trial_key.sh" ]; then
-        ./get_trial_key.sh
-    fi
+
     killwatch
     if [ -f "$PIDFILE" ]; then
         PID=`cat $PIDFILE`
