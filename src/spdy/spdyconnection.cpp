@@ -65,7 +65,7 @@ SpdyConnection::SpdyConnection()
         , m_iCurInBytesToUpdate( 0 )
         , m_iDataInWindow( SPDY_FCW_INIT_SIZE )
         , m_iStreamInInitWindowSize( 5*1024*1024 )
-        , m_iServerMaxStreams( 500 )
+        , m_iServerMaxStreams( 40 )
         , m_iStreamOutInitWindowSize( SPDY_FCW_INIT_SIZE )
         , m_iClientMaxStreams( 40 )
         , m_tmIdleBegin( 0 )
@@ -83,7 +83,7 @@ int SpdyConnection::init( HiosProtocol ver )
         m_iStreamOutInitWindowSize = SPDY_FCW_INIT_SIZE;
     else
         m_iStreamOutInitWindowSize = 1024 * 1024 * 1024;   //For SPDY2, there is no flow control, set it to a large value
-    m_iServerMaxStreams = 500;
+    m_iServerMaxStreams = 40;
     m_iClientMaxStreams = 40;
     
     m_tmIdleBegin = 0;
