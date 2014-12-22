@@ -1369,7 +1369,7 @@ int LshttpdMain::guardCrash()
                         {
                             return 0;
                         }
-                        else if ret > 0 { //parent proces with ret = pid
+                        else if ( ret > 0 )  { //parent proces with ret = pid
                             //TODO set affinity and bind to a specific CPU so we don't bounce around....
                             cpu_set_t mask;
                               unsigned int len = sizeof(mask);
@@ -1377,7 +1377,7 @@ int LshttpdMain::guardCrash()
                               CPU_SET(m_curChildren,&mask);
                               sched_setaffinity(ret, len, &mask);
 
-                              HttpLog::notice( ("set child [%d] to affinity value: [%d]",ret, m_curChildren));
+                              LOG_NOTICE(("set child [%d] to affinity value: [%d]",ret, m_curChildren));
 
                         }
                         else if ( ret == -1 )
@@ -1406,7 +1406,7 @@ int LshttpdMain::guardCrash()
     }
     if ( m_childrenList.size() > 0 )
         stopAllChildren();
-    HttpLog::notice( ("[PID:%d] Server Stopped!\n", getpid() );
+    HttpLog::notice( "[PID:%d] Server Stopped!\n", getpid() );
     exit( ret );
 }
 
