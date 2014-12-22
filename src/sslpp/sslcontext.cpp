@@ -36,6 +36,8 @@
 #include <unistd.h>
 #include <config.h>
 #include <limits.h>
+#include <http/httplog.h>
+
 
 long SSLContext::setOptions( long options )
 {
