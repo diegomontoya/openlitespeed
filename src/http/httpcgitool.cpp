@@ -16,7 +16,7 @@
 *    along with this program. If not, see http://www.gnu.org/licenses/.      *
 *****************************************************************************/
 #include "httpcgitool.h"
-#include "httpconnection.h"
+#include "httpsession.h"
 #include "httpdefs.h"
 #include "httpglobals.h"
 #include "httpmime.h"
@@ -24,9 +24,11 @@
 #include "httpresp.h"
 #include "httpserverversion.h"
 #include "httpextconnector.h"
+#include "requestvars.h"
 #include <extensions/fcgi/fcgienv.h>
 #include <sslpp/sslconnection.h>
 #include <sslpp/sslcert.h>
+#include <openssl/x509.h>
 
 #include <util/autobuf.h>
 #include <util/autostr.h>
@@ -48,8 +50,8 @@ int HttpCgiTool::processHeaderLine( HttpExtConnector * pExtConn, const char * pL
     const char * pKeyEnd;
     const char * pValue = pLineBegin;
     char * p;
-    HttpResp* pResp = pExtConn->getHttpConn()->getResp();
-    HttpReq * pReq = pExtConn->getHttpConn()->getReq();
+    HttpResp* pResp = pExtConn->getHttpSession()->getResp();
+    HttpReq * pReq = pExtConn->getHttpSession()->getReq();
     
     index = HttpRespHeaders::getRespHeaderIndex( pValue );
     if ( index < HttpRespHeaders::H_HEADER_END )
@@ -90,7 +92,7 @@ int HttpCgiTool::processHeaderLine( HttpExtConnector * pExtConn, const char * pL
         if ( pReq->getStatusCode() == SC_304 )
             return 0;
         p = (char *)memchr( pValue, ';', pLineEnd - pValue );
-        if ( pReq->gzipAcceptable() )
+        if ( pReq->gzipAcceptable() == GZIP_REQUIRED )
         {
             register char ch = 0;
             register char *p1;
@@ -126,11 +128,27 @@ int HttpCgiTool::processHeaderLine( HttpExtConnector * pExtConn, const char * pL
             str.append( pLineBegin, pLineEnd - pLineBegin );
             str.append( pCharset->c_str(), pCharset->len() );
             str.append( "\r\n", 2 );
-            buf.parseAdd(str.c_str(), str.len(), RespHeader::APPEND);
+            buf.parseAdd(str.c_str(), str.len(), LSI_HEADER_ADD);
         }
         return 0;
     case HttpRespHeaders::H_CONTENT_ENCODING:
-        pReq->andGzip( ~GZIP_ENABLED );
+        if ( pReq->getStatusCode() == SC_304 )
+            return 0;
+        if ( strncasecmp( pValue, "gzip", 4 ) == 0 )
+        {
+            pReq->orGzip( UPSTREAM_GZIP );
+        }
+        else if ( strncasecmp( pValue, "deflate", 7 ) == 0 )
+        {
+            pReq->orGzip( UPSTREAM_DEFLATE );
+        }
+//             if ( !(pReq->gzipAcceptable() & REQ_GZIP_ACCEPT) )
+//                 return 0;
+//         }
+//         else //if ( strncasecmp( pValue, "deflate", 7 ) == 0 )
+//         {
+//             pReq->andGzip( ~GZIP_ENABLED );
+//         }
         break;
     case HttpRespHeaders::H_LOCATION:
         if ( (status & HEC_RESP_PROXY ) || (pReq->getStatusCode() != SC_200 ))
@@ -155,11 +173,12 @@ int HttpCgiTool::processHeaderLine( HttpExtConnector * pExtConn, const char * pL
             }
             else
                 pReq->setLocation( pValue, pLineEnd - pValue );
-            status |= HEC_RESP_LOC_SET;
+            pExtConn->getHttpSession()->changeHandler();
+            //status |= HEC_RESP_LOC_SET;
             return 0;
         }
         break;
-    case HttpRespHeaders::CGI_STATUS:
+    case HttpRespHeaders::H_CGI_STATUS:
         tmpIndex = HttpStatusCode::codeToIndex( pValue );
         if ( tmpIndex != -1 )
         {
@@ -178,7 +197,7 @@ int HttpCgiTool::processHeaderLine( HttpExtConnector * pExtConn, const char * pL
         }
         return 0;
     case HttpRespHeaders::H_TRANSFER_ENCODING:
-        pResp->setContentLen( -1 );
+        pResp->setContentLen( LSI_RESP_BODY_SIZE_CHUNKED );
         return 0;
     case HttpRespHeaders::H_PROXY_CONNECTION:
     case HttpRespHeaders::H_CONNECTION:
@@ -186,10 +205,10 @@ int HttpCgiTool::processHeaderLine( HttpExtConnector * pExtConn, const char * pL
             status |= HEC_RESP_CONN_CLOSE;
         return 0;
     case HttpRespHeaders::H_CONTENT_LENGTH:
-        if ( pResp->getContentLen() >= 0 )
+        if ( pResp->getContentLen() == LSI_RESP_BODY_SIZE_UNKNOWN )
         {
-            long lContentLen = strtol( pValue, NULL, 10 );
-            if (( lContentLen >= 0 )&&( lContentLen != LONG_MAX ))
+            off_t lContentLen = strtoll( pValue, NULL, 10 );
+            if (( lContentLen >= 0 )&&( lContentLen != LLONG_MAX ))
             {
                 pResp->setContentLen( lContentLen );
                 status |= HEC_RESP_CONT_LEN;
@@ -210,7 +229,7 @@ int HttpCgiTool::processHeaderLine( HttpExtConnector * pExtConn, const char * pL
         if (strncasecmp( pLineBegin, "Variable-", 9 ) == 0 )
         {
             if ( pKeyEnd > pLineBegin + 9 )
-                pReq->addEnv( pLineBegin + 9, pKeyEnd - pLineBegin - 9,
+                RequestVars::setEnv(pExtConn->getHttpSession(), pLineBegin + 9, pKeyEnd - pLineBegin - 9,
                             pValue, pLineEnd - pValue );
         }
         return 0;
@@ -254,7 +273,7 @@ int HttpCgiTool::parseRespHeader( HttpExtConnector * pExtConn,
             index = HttpStatusCode::codeToIndex( pValue + 9 );
             if ( index != -1 )
             {
-                pExtConn->getHttpConn()->getReq()->updateNoRespBodyByStatus( index );
+                pExtConn->getHttpSession()->getReq()->updateNoRespBodyByStatus( index );
                 status |= HEC_RESP_NPH2;
                 if (( status & HEC_RESP_AUTHORIZER )&&( index == SC_200))
                     status |= HEC_RESP_AUTHORIZED;
@@ -296,9 +315,9 @@ static int CGI_HEADER_LEN[HttpHeader::H_TRANSFER_ENCODING ] =
      22, 13, 18, 13, 24, 14, 10, 20, 8  };
 
 
-int HttpCgiTool::buildEnv( IEnv* pEnv, HttpConnection* pConn )
+int HttpCgiTool::buildEnv( IEnv* pEnv, HttpSession* pSession )
 {
-    HttpReq * pReq = pConn->getReq();
+    HttpReq * pReq = pSession->getReq();
     int n;
     pEnv->add( "GATEWAY_INTERFACE",17, "CGI/1.1", 7 );
     if ( getenv( "PATH" ) == NULL )
@@ -330,7 +349,7 @@ int HttpCgiTool::buildEnv( IEnv* pEnv, HttpConnection* pConn )
 //    //ADD_ENV(pEnv, "REMOTE_HOST", achTemp );
 
     addSpecialEnv( pEnv, pReq );
-    buildCommonEnv( pEnv, pConn );
+    buildCommonEnv( pEnv, pSession );
     addHttpHeaderEnv( pEnv, pReq );
     pEnv->add( 0, 0, 0, 0);
     return 0;
@@ -351,7 +370,7 @@ void HttpCgiTool::buildServerEnv()
     GISS_ENV_LEN += HttpServerVersion::getVersionLen();
 }
 
-int HttpCgiTool::buildFcgiEnv( FcgiEnv* pEnv, HttpConnection* pConn )
+int HttpCgiTool::buildFcgiEnv( FcgiEnv* pEnv, HttpSession* pSession )
 {
     static const char* SP_ENVs[] =
     {   "\017\010SERVER_PROTOCOLHTTP/1.1",
@@ -377,7 +396,7 @@ int HttpCgiTool::buildFcgiEnv( FcgiEnv* pEnv, HttpConnection* pConn )
     {   23, 23, 19, 20, 20, 19, 22, 21, 23, 20 };
     
     
-    HttpReq * pReq = pConn->getReq();
+    HttpReq * pReq = pSession->getReq();
     int n;
 
     pEnv->add( GISS_ENV, GISS_ENV_LEN );
@@ -391,7 +410,7 @@ int HttpCgiTool::buildFcgiEnv( FcgiEnv* pEnv, HttpConnection* pConn )
                                     HttpMethod::getLen( n ) );
 
     addSpecialEnv( pEnv, pReq );
-    buildCommonEnv( pEnv, pConn );
+    buildCommonEnv( pEnv, pSession );
     addHttpHeaderEnv( pEnv, pReq );
     return 0;
 }
@@ -411,10 +430,26 @@ int HttpCgiTool::addSpecialEnv( IEnv * pEnv, HttpReq * pReq )
     return 0;
 }
 
-int HttpCgiTool::buildCommonEnv( IEnv * pEnv, HttpConnection * pConn )
+static int lookup_ssl_cert_serial( X509 *pCert, char * pBuf, int len )
+{
+    BIO *bio;
+    int n;
+
+    if ((bio = BIO_new(BIO_s_mem())) == NULL)
+        return -1;
+    i2a_ASN1_INTEGER(bio, X509_get_serialNumber(pCert));
+    //n = BIO_pending(bio);
+    n = BIO_read(bio, pBuf, len);
+    pBuf[n] = '\0';
+    BIO_free(bio);
+    return n;
+}
+
+
+int HttpCgiTool::buildCommonEnv( IEnv * pEnv, HttpSession *pSession )
 {
     int count = 0;
-    HttpReq * pReq = pConn->getReq();
+    HttpReq * pReq = pSession->getReq();
     const char * pTemp;
     int n;
     int i;
@@ -433,13 +468,13 @@ int HttpCgiTool::buildCommonEnv( IEnv * pEnv, HttpConnection * pConn )
     const AutoStr2 * pDocRoot = pReq->getDocRoot();
     pEnv->add( "DOCUMENT_ROOT", 13,
             pDocRoot->c_str(), pDocRoot->len()-1 );
-    pEnv->add( "REMOTE_ADDR", 11, pConn->getPeerAddrString(),
-            pConn->getPeerAddrStrLen() );
+    pEnv->add( "REMOTE_ADDR", 11, pSession->getPeerAddrString(),
+            pSession->getPeerAddrStrLen() );
     
-    n = safe_snprintf( buf, 10, "%hu", pConn->getRemotePort() );
+    n = safe_snprintf( buf, 10, "%hu", pSession->getRemotePort() );
     pEnv->add( "REMOTE_PORT", 11, buf, n );
 
-    n = pConn->getServerAddrStr( buf, 128 );
+    n = pSession->getServerAddrStr( buf, 128 );
     
     pEnv->add( "SERVER_ADDR", 11, buf, n );
     
@@ -468,11 +503,11 @@ int HttpCgiTool::buildCommonEnv( IEnv * pEnv, HttpConnection * pConn )
     //add geo IP env here
     if ( pReq->isGeoIpOn() )
     {
-        GeoInfo * pInfo = pConn->getClientInfo()->getGeoInfo();
+        GeoInfo * pInfo = pSession->getClientInfo()->getGeoInfo();
         if ( pInfo )
         {
-            pEnv->add( "GEOIP_ADDR", 10, pConn->getPeerAddrString(),
-                    pConn->getPeerAddrStrLen() );
+            pEnv->add( "GEOIP_ADDR", 10, pSession->getPeerAddrString(),
+                    pSession->getPeerAddrStrLen() );
             count += pInfo->addGeoEnv( pEnv )+1;
         }
     }    
@@ -490,9 +525,9 @@ int HttpCgiTool::buildCommonEnv( IEnv * pEnv, HttpConnection * pConn )
             pEnv->add( pKey, keyLen, pVal, valLen );
     }
     
-    if ( pConn->isSSL() )
+    if ( pSession->isSSL() )
     {
-        SSLConnection * pSSL = pConn->getSSL();
+        SSLConnection * pSSL = pSession->getSSL();
         pEnv->add( "HTTPS", 5, "on",  2 );
         const char * pVersion = pSSL->getVersion();
         n = strlen( pVersion );
@@ -526,17 +561,60 @@ int HttpCgiTool::buildCommonEnv( IEnv * pEnv, HttpConnection * pConn )
             count += 3;
         }
 
-        X509 * pClientCert = pSSL->getPeerCertificate();
-        if ( pClientCert )
+        i = pSSL->getVerifyMode();
+        if ( i != 0 )
         {
-            //IMPROVE: too many deep copy here.
             char achBuf[4096];
-            n = SSLCert::PEMWriteCert( pClientCert, achBuf, 4096 );
-            if ((n>0)&&( n <= 4096 ))
+            X509 * pClientCert = pSSL->getPeerCertificate();
+            if ( pSSL->isVerifyOk() )
             {
-                pEnv->add( "SSL_CLIENT_CERT", 15, achBuf, n );
-                ++count;
+                if ( pClientCert )
+                {
+                    //IMPROVE: too many deep copy here.
+                    //n = SSLCert::PEMWriteCert( pClientCert, achBuf, 4096 );
+                    //if ((n>0)&&( n <= 4096 ))
+                    //{
+                    //    pEnv->add( "SSL_CLIENT_CERT", 15, achBuf, n );
+                    //    ++count;
+                    //}
+                    n = snprintf( achBuf, sizeof( achBuf ), "%lu", X509_get_version( pClientCert ) + 1 );
+                    pEnv->add( "SSL_CLIENT_M_VERSION", 20, achBuf, n );
+                    ++count;
+                    n = lookup_ssl_cert_serial( pClientCert, achBuf, 4096 );
+                    if ( n != -1 )
+                    {
+                        pEnv->add( "SSL_CLIENT_M_SERIAL", 19, achBuf, n );
+                        ++count;
+                    }
+                    X509_NAME_oneline( X509_get_subject_name( pClientCert ), achBuf, 4096 );
+                    pEnv->add( "SSL_CLIENT_S_DN", 15, achBuf, strlen( achBuf ));
+                    ++count;
+                    X509_NAME_oneline( X509_get_issuer_name( pClientCert ), achBuf, 4096 );
+                    pEnv->add( "SSL_CLIENT_I_DN", 15, achBuf, strlen( achBuf ));
+                    ++count;
+                    if ( SSLConnection::isClientVerifyOptional( i ) )
+                    {
+                        strcpy( achBuf, "GENEROUS" );
+                        n = 8;
+                    }
+                    else
+                    {
+                        strcpy( achBuf, "SUCCESS" );
+                        n = 7;
+                    }
+                }
+                else
+                {
+                    strcpy( achBuf, "NONE" );
+                    n = 4;
+                }
             }
+            else
+            {
+                n = pSSL->buildVerifyErrorString( achBuf, sizeof( achBuf ) );
+            }
+            pEnv->add( "SSL_CLIENT_VERIFY", 17, achBuf, n );
+            ++count;
         }
         
     }    
@@ -638,8 +716,8 @@ int HttpCgiTool::processContentType( HttpReq * pReq, HttpResp* pResp,
                     break;
             }
             HttpRespHeaders& buf = pResp->getRespHeaders();
-            buf.add(HttpRespHeaders::H_CONTENT_TYPE, "Content-Type", 12, pValue, valLen);
-            buf.appendLastVal( "Content-Type", 12, pCharset->c_str(), pCharset->len() );
+            buf.add(HttpRespHeaders::H_CONTENT_TYPE, pValue, valLen);
+            buf.appendLastVal( pCharset->c_str(), pCharset->len() );
         }
         return 0;
     }

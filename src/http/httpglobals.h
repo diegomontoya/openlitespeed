@@ -21,14 +21,17 @@
 
 #include <sys/types.h>
 #include <http/reqstats.h>
-    
+#include <util/tlinklist.h>
+#include <../addon/include/ls.h>
+
+
 class AccessControl;
 class AutoStr2;
 class ClientCache;
 class ConnLimitCtrl;
 class DeniedDir;
 class EventDispatcher;
-class HttpConnection;
+class HttpSession;
 class HttpMime;
 class HttpResourceManager;
 class Multiplexer;
@@ -39,7 +42,7 @@ class StdErrLogger;
 class SUExec;
 class CgidWorker;
 class HttpVHost;
-class HttpServerBuilder;
+class HttpConfigLoader;
 
 #ifdef USE_UDNS
 class Adns;
@@ -47,6 +50,17 @@ class Adns;
 class IpToGeo;
 #define G_BUF_SIZE 16384
 #define TIMER_PRECISION 10
+
+class ModuleTimer : public LinkedObj
+{
+public:
+    int                     m_iId;
+    time_t                  m_tmExpire;
+    time_t                  m_tmExpireUs;
+    lsi_timer_callback_pf   m_TimerCb;
+    void*                   m_pTimerCbParam;
+};
+
 
 class HttpGlobals
 {
@@ -56,7 +70,7 @@ class HttpGlobals
     static HttpMime             * s_pMime;
     static DeniedDir              s_deniedDir;
     static ConnLimitCtrl          s_connLimitCtrl;
-    static ClientCache            s_clients;
+    static ClientCache          * s_pClients;
     static HttpResourceManager    s_ResManager;
     static StaticFileCache        s_staticFileCache;
     static StdErrLogger           s_stdErrLogger;
@@ -106,8 +120,12 @@ public:
 
     static int                    s_rubyProcLimit;
     static int                    s_railsAppLimit;
-    static HttpServerBuilder *    s_pBuilder;
 
+    
+    //module timer linklist
+    static TLinkList<ModuleTimer>    s_ModuleTimerList;
+    
+   
 #ifdef USE_UDNS
     static Adns                   s_adns;
 #endif
@@ -132,7 +150,10 @@ public:
     static AccessControl * getAccessCtrl()
     {   return s_pAccessCtrl;       }
     static ClientCache * getClientCache()
-    {   return &s_clients;          }
+    {   return s_pClients;          }
+    static void setClientCache( ClientCache * p )
+    {   s_pClients = p;      }
+    
     static StaticFileCache *getStaticFileCache()
     {   return &s_staticFileCache;  }
     static HttpMime * getMime()

@@ -27,6 +27,7 @@ const char * HandlerType::s_sHandlerType[HT_END] =
     "redirect",
     "jwebapp",
     "rails",
+    "module",
     "cgi",
     "fcgi",
     "proxy",
@@ -34,7 +35,7 @@ const char * HandlerType::s_sHandlerType[HT_END] =
     "lsapi",
     "logger",
     "loadbalancer"
-
+ 
 };
 
 
@@ -79,6 +80,8 @@ int HandlerType::getHandlerType( const char * pType, int &role )
             iType = HT_LOGGER;
         else if ( strcasecmp( pType, "loadbalancer" ) == 0 )
             iType = HT_LOADBALANCER;
+        else if ( strcasecmp( pType, "module" ) == 0 )
+            iType = HT_MODULE;        
     }
     return iType;
 }

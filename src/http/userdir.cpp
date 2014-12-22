@@ -17,7 +17,7 @@
 *****************************************************************************/
 #include "userdir.h"
 #include <http/authuser.h>
-#include <http/datetime.h>
+#include <util/datetime.h>
 #include <http/htpasswd.h>
 #include <http/httpstatuscode.h>
 #include <util/pool.h>
@@ -58,12 +58,12 @@ void UserDir::setName( const char * pName )
     m_pName = g_pool.dupstr( pName );
 }
 
-const AuthUser * UserDir::getUserIfMatchGroup( HttpConnection * pConn, const char * pUser,
+const AuthUser * UserDir::getUserIfMatchGroup( HttpSession *pSession, const char * pUser,
             int userLen, const StringList *pReqGroups, int * ready )
 {
     if ( !pReqGroups )
         return NULL;
-    AuthUser * pData = (AuthUser *)getUser( pConn, pUser, userLen, ready );
+    AuthUser * pData = (AuthUser *)getUser( pSession, pUser, userLen, ready );
     if ( pData && pData->getGroups() )
     {
         StringList::const_iterator iter = pReqGroups->begin();
@@ -80,7 +80,7 @@ const AuthUser * UserDir::getUserIfMatchGroup( HttpConnection * pConn, const cha
         StringList::const_iterator iter = pReqGroups->begin();
         while( iter != pReqGroups->end() )
         {
-            pGroup = ( const AuthGroup *)(getGroup( pConn,
+            pGroup = ( const AuthGroup *)(getGroup( pSession,
                             (*iter)->c_str(), (*iter)->len(), ready ));
             if ( pGroup )
             {
@@ -115,7 +115,7 @@ void UserDir::setGroupCache( HashDataCache * pCache )
     m_pCacheGroup = pCache;
 }
 
-const AuthUser * UserDir::getRequiredUser( HttpConnection * pConn, const char * pUser, int userLen,
+const AuthUser * UserDir::getRequiredUser( HttpSession *pSession, const char * pUser, int userLen,
                 const AuthRequired * pRequired, int * ready )
 {
     int type = AuthRequired::REQ_DEFAULT;
@@ -129,9 +129,9 @@ const AuthUser * UserDir::getRequiredUser( HttpConnection * pConn, const char * 
             return NULL;
         //fall through
     case AuthRequired::REQ_DEFAULT:
-        return getUser( pConn, pUser, userLen, ready );
+        return getUser( pSession, pUser, userLen, ready );
     case AuthRequired::REQ_GROUP:
-        return getUserIfMatchGroup( pConn, pUser, userLen,
+        return getUserIfMatchGroup( pSession, pUser, userLen,
                     pRequired->getList(), ready );
 
     case AuthRequired::REQ_FILE_OWNER:
@@ -143,7 +143,7 @@ const AuthUser * UserDir::getRequiredUser( HttpConnection * pConn, const char * 
 }
 
 
-const AuthUser * UserDir::getUser( HttpConnection * pConn, HashDataCache * pCache,
+const AuthUser * UserDir::getUser( HttpSession *pSession, HashDataCache * pCache,
                         const char * pKey, int len, int* ready )
 {
     AuthUser * pUser;
@@ -168,7 +168,7 @@ const AuthUser * UserDir::getUser( HttpConnection * pConn, HashDataCache * pCach
             }
         }
     }
-    pUser = getUserFromStore( pConn, pCache, pKey, len, ready );
+    pUser = getUserFromStore( pSession, pCache, pKey, len, ready );
     if ( *ready == -1 )
         return NULL;
     if ( *ready > 0 )
@@ -181,6 +181,11 @@ const AuthUser * UserDir::getUser( HttpConnection * pConn, HashDataCache * pCach
         pUser->setKey( pKey, len );
         pUser->setExist( 0 );
     }
+    else
+    {
+        if ( pUser->getEncMethod() == ENCRYPT_PLAIN )
+            pUser->updatePasswdEncMethod();
+    }
     pUser->setTimestamp( DateTime::s_curTime );
     if ( pCache->insert( pUser->getKey(), pUser ) == pCache->end() )
     {
@@ -191,7 +196,7 @@ const AuthUser * UserDir::getUser( HttpConnection * pConn, HashDataCache * pCach
 
 }
 
-const StringList* UserDir::getGroup( HttpConnection * pConn, HashDataCache * pCache, const char * pKey,
+const StringList* UserDir::getGroup( HttpSession *pSession, HashDataCache * pCache, const char * pKey,
                         int len, int* ready )
 {
     AuthGroup * pGroup;
@@ -216,7 +221,7 @@ const StringList* UserDir::getGroup( HttpConnection * pConn, HashDataCache * pCa
             }
         }
     }
-    pGroup = getGroupFromStore( pConn, pCache, pKey, len, ready );
+    pGroup = getGroupFromStore( pSession, pCache, pKey, len, ready );
     if ( *ready == -1 )
         return NULL;
     if ( *ready > 0 )
@@ -269,12 +274,129 @@ static int verifySHA( const char * pStored, const char * pPasswd, int seeded )
     return memcmp( m, pStored, SHA_DIGEST_LENGTH );
 }
 
-int UserDir::authenticate( HttpConnection * pConn, const char * pUserName, int len,
+
+void ApTo64(char *s, unsigned long v, int n)
+{
+    static unsigned char itoa64[] =         /* 0 ... 63 => ASCII - 64 */
+    "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    while (--n >= 0) {
+    *s++ = itoa64[v&0x3f];
+    v >>= 6;
+    }
+}
+
+void ApMD5Encode(const unsigned char *pw,
+                  const unsigned char *sp, int sl,
+                  char *result)
+{
+
+    char *p;
+    unsigned char final[16];
+    int i;
+    int pl;
+    unsigned int pwlen;
+    MD5_CTX ctx, ctx1;
+    unsigned long l;
+
+    MD5_Init(&ctx);
+
+    pwlen = strlen((char *)pw);
+    MD5_Update(&ctx, pw, pwlen);
+    MD5_Update(&ctx, sp, sl);
+
+    MD5_Init(&ctx1);
+    MD5_Update(&ctx1, pw, pwlen);
+    MD5_Update(&ctx1, sp+6, sl-6);
+    MD5_Update(&ctx1, pw, pwlen);
+    MD5_Final(final, &ctx1);
+    for(pl = pwlen; pl > 0; pl -= 16)
+    {
+        MD5_Update(&ctx, final, (pl > 16) ? 16 : (unsigned int) pl);
+    }
+
+    /*
+     * Don't leave anything around in vm they could use.
+     */
+    memset(final, 0, sizeof(final));
+
+    /*
+     * Then something really weird...
+     */
+    for (i = pwlen; i != 0; i >>= 1)
+    {
+        if (i & 1)
+        {
+            MD5_Update(&ctx, final, 1);
+        }
+        else
+        {
+            MD5_Update(&ctx, pw, 1);
+        }
+    }
+
+    MD5_Final(final, &ctx);
+
+    for (i = 0; i < 1000; i++)
+    {
+        MD5_Init(&ctx1);
+        if (i & 1) {
+            MD5_Update(&ctx1, pw, pwlen);
+        }
+        else {
+            MD5_Update(&ctx1, final, 16);
+        }
+        if (i % 3) {
+            MD5_Update(&ctx1, sp+6, sl-6);
+        }
+
+        if (i % 7) {
+            MD5_Update(&ctx1, pw, pwlen);
+        }
+
+        if (i & 1) {
+            MD5_Update(&ctx1, final, 16);
+        }
+        else {
+            MD5_Update(&ctx1, pw, pwlen);
+        }
+        MD5_Final(final,&ctx1);
+    }
+
+    p = result;
+
+    l = (final[ 0]<<16) | (final[ 6]<<8) | final[12]; ApTo64(p, l, 4); p += 4;
+    l = (final[ 1]<<16) | (final[ 7]<<8) | final[13]; ApTo64(p, l, 4); p += 4;
+    l = (final[ 2]<<16) | (final[ 8]<<8) | final[14]; ApTo64(p, l, 4); p += 4;
+    l = (final[ 3]<<16) | (final[ 9]<<8) | final[15]; ApTo64(p, l, 4); p += 4;
+    l = (final[ 4]<<16) | (final[10]<<8) | final[ 5]; ApTo64(p, l, 4); p += 4;
+    l =                    final[11]                ; ApTo64(p, l, 2); p += 2;
+    *p = '\0';
+
+    /*
+     * Don't leave anything around in vm they could use.
+     */
+    memset(final, 0, sizeof(final));
+
+}
+
+static int verifyApMD5( const char * pStored, const char * pPasswd )
+{
+    char result[120];
+    ApMD5Encode((const unsigned char *)pPasswd,
+                (const unsigned char *)pStored, 14,
+                result);
+
+    return memcmp( result, pStored + 15, 22 );
+}
+
+
+int UserDir::authenticate( HttpSession *pSession, const char * pUserName, int len,
                       const char * pPasswd, int encryptMethod,
                       const AuthRequired * pRequired )
 {
     int ready = 0;
-    const AuthUser * pUser = getRequiredUser( pConn, pUserName, len, pRequired, &ready );
+    const AuthUser * pUser = getRequiredUser( pSession, pUserName, len, pRequired, &ready );
     if ( ready != 0 )
         return ready;
     if ( !pUser || !pUser->isExist() )
@@ -299,6 +421,10 @@ int UserDir::authenticate( HttpConnection * pConn, const char * pUserName, int l
             if ( verifyMD5(pStored, pPasswd, 0 ) == 0 )
                 return 0;
             break;
+        case ENCRYPT_APMD5:
+            if ( verifyApMD5( pStored, pPasswd ) == 0 )
+                return 0;
+            break;    
         case ENCRYPT_SHA:
             if ( verifySHA(pStored, pPasswd, 0 ) == 0 )
                 return 0;

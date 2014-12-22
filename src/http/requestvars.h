@@ -112,7 +112,7 @@
 #define REF_MATCHED_VAR             175
 
 
-class HttpConnection;
+class HttpSession;
 class HttpReq;
 
 class MapRefItem;
@@ -194,28 +194,34 @@ public:
     static int parseBuiltIn( const char * pVar, int len, int ext = 0);
     static int parseHttpHeader( const char * pName, int len, const char * &pHeaderName, int &headerLen );
 
-    static int getReqVar( HttpConnection * pConn, int type, char * &pValue, int bufLen);
+    static int getReqVar( HttpSession *pSession, int type, char * &pValue, int bufLen);
+    static int getReqVar2( HttpSession *pSession, int type, char * &pValue, int bufLen); 
+  
     static const char * getUnknownHeader( HttpReq * pReq, const char * pName,
                                         int nameLen, int &headerLen);
     static const char * getHeaderString( int iIndex );
     static const char * getCookieValue( HttpReq * pReq, const char * pCookieName,
                                         int nameLen, int &idLen );
     static int getCookieCount( HttpReq * pReq );
-    static const char * getEnv( HttpConnection * pConn, const char * pKey,
+    static const char * getEnv( HttpSession *pSession, const char * pKey,
                                 int keyLen, int &valLen );
 
-    static int getSubstValue( const SubstItem * pItem, HttpConnection *pConn,
+    static int getSubstValue( const SubstItem * pItem, HttpSession *pSession,
                         char * &pValue, int bufLen );
 
-    static int appendSubst( const SubstItem * pItem, HttpConnection *pConn,
+    static int appendSubst( const SubstItem * pItem, HttpSession *pSession,
                         char * &pBegin, int len, int noDupSlash,
                         const RegexResult * pRegRes, const char * pTmFmt = NULL );
 
-    static char * buildString( const SubstFormat * pFormat, HttpConnection * pConn,
+    static char * buildString( const SubstFormat * pFormat, HttpSession *pSession,
                           char * pBuf, int &len, int noDupSlash, const RegexResult * pRegRes,
                           const char * pTmFmt = NULL );
 
     static const char * getVarNameStr( int var_id, int &len );
+
+    static int setEnv( HttpSession* pSession, const char * pName, int nameLen, 
+                        const char * pValue, int valLen );
+    
 };
 
 #endif

@@ -33,49 +33,42 @@ StatusCode::StatusCode( int code, const char * pStatus,
         status_size = strlen( pStatus );
         if ( message )
         {
-            char achBuf[2048];
+            char achBuf[4096];
             char * p = achBuf;
-            char * pEnd = p + 2048;
-            p += safe_snprintf( p, pEnd - p, "<html>\n<head><title>%s</title></head>\n"
-                              "<body><h1>%s</h1>\n",
-                pStatus, pStatus );
-            p += safe_snprintf( p, pEnd - p, "%s", message );
+            char * pEnd = p + 4096;
+            p += safe_snprintf( p, pEnd - p, 
+                        "<!DOCTYPE html>\n"
+                        "<html style=\"height:100%%\">\n<head><title>%s</title></head>\n"
+                        "<body style=\"color: #444; margin:0;font: normal 14px/20px Arial, Helvetica, sans-serif; height:100%%; background-color: #fff;"
+                        "\">\n"
+                        "<div style=\"height:auto; min-height:100%%; \">"
+                        "     <div style=\"text-align: center; width:800px; margin-left: -400px; position:absolute; top: 30%%; left:50%%;"
+                        "\">\n"
+                        "        <h1 style=\"margin:0; font-size:150px; line-height:150px; font-weight:bold;\">%c%c%c</h1>\n"
+                        "<h2 style=\"margin-top:20px;font-size: 30px;\">%s</h2>\n"                        
+                        "<p>%s</p>\n"      
+                        "</div></div>"
+                        ,
+                pStatus, pStatus[1], pStatus[2], pStatus[3], &pStatus[5], message ? message : "" );
+            //p += safe_snprintf( p, pEnd - p, "%s", message );
             if (( code >= SC_403 )||( code <= SC_404 ))
-                p += safe_snprintf( p, pEnd - p,
-                    "<hr />\n"
-                    "Powered By <a href='http://www.litespeedtech.com'>LiteSpeed Web Server</a><br />\n"
-                    "<font face=\"Verdana, Arial, Helvetica\" size=-1>Lite Speed Technologies is not "
-                    "responsible for administration and contents of this web site!</font>" );
+                p += snprintf( p, pEnd - p,
+                        "<div style=\"color:#f0f0f0; font-size:12px;margin:auto;padding:0px 30px 0px 30px;"
+                        "position:relative;clear:both;height:100px;margin-top:-101px;background-color:#474747;"
+                        "border-top: 1px solid rgba(0,0,0,0.15);box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset;\">\n"
+                        "<br>Proudly powered by  <a style=\"color:#fff;\" href=\"http://www.litespeedtech.com/error-page\">LiteSpeed Web Server</a>"
+                        "<p>Please be advised that LiteSpeed Technologies Inc. is not a web hosting"
+                        " company and, as such, has no control over content found on this site.</p></div>"
+                         );
             
             p += safe_snprintf( p, pEnd -p, "</body></html>\n" );
 
             m_iBodySize = p - achBuf;
-            m_pHeaderBody = (char *)malloc( m_iBodySize + 160 );
+            m_pHeaderBody = (char *)malloc( m_iBodySize + 1 );
             if ( !m_pHeaderBody )
                 m_iBodySize =0;
             else
-            {
-                int n;
-                if ( code >= SC_307 )
-                {
-                    n = safe_snprintf( m_pHeaderBody, 159,
-                        "Cache-Control: private, no-cache, max-age=0\r\n"
-                        "Pragma: no-cache\r\n"
-                        "Content-Type: text/html\r\n"
-                        "Content-Length: %d\r\n",
-                        m_iBodySize );
-                    
-                }
-                else
-                {
-                    n = safe_snprintf( m_pHeaderBody, 79,
-                        "Content-Type: text/html\r\n"
-                        "Content-Length: %d\r\n",
-                        m_iBodySize );
-                }
-                m_iHeaderSize = n;
-                memcpy( m_pHeaderBody + n, achBuf, m_iBodySize + 1 );
-            }
+                memcpy( m_pHeaderBody, achBuf, m_iBodySize + 1 );
         }
     }
 }

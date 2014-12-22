@@ -15,50 +15,20 @@
 *    You should have received a copy of the GNU General Public License       *
 *    along with this program. If not, see http://www.gnu.org/licenses/.      *
 *****************************************************************************/
-#ifndef HANDLERTYPE_H
-#define HANDLERTYPE_H
+#include "sendfileinfo.h"
+
+#include <assert.h>
 
 
-
-class HandlerType
+SendFileInfo::SendFileInfo()
+    : m_pFileData( NULL )
+    , m_pECache( NULL )
+    , m_lCurPos( 0 )
+    , m_lCurEnd( 0 )
 {
-    HandlerType();
-    ~HandlerType();
-public:
+}
 
-    enum
-    {
-        HT_NULL = 0,
-        HT_STATIC = HT_NULL,
-        HT_SSI,
-        HT_ACTION,
-        HT_REDIRECT,
-        HT_DYNAMIC,
-        HT_JAVAWEBAPP = HT_DYNAMIC,
-        HT_RAILS,
-        HT_MODULE,
-        HT_CGI,
-        HT_FASTCGI,
-        HT_PROXY,
-        HT_SERVLET,
-        HT_JSP = HT_SERVLET,
-        HT_LSAPI,
-        HT_LOGGER,
-        HT_LOADBALANCER,
-        HT_END
-    };
-    enum
-    {
-        ROLE_UNKNOWN,
-        ROLE_RESPONDER,
-        ROLE_AUTHORIZER
-    };
-private:
-    static const char * s_sHandlerType[HT_END];
-public:
-    static int getHandlerType( const char * pType, int &role );
-    static const char * getHandlerTypeString( int type )
-    {   return s_sHandlerType[type];    }
-};
+SendFileInfo::~SendFileInfo()
+{}
 
-#endif
+

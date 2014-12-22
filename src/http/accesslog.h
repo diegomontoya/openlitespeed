@@ -29,6 +29,7 @@
 #define LOG_USERAGENT   2
 #define LOG_VHOST       4
 
+#include <sys/types.h>
 
 #include <log4cxx/nsdefs.h>
 
@@ -37,8 +38,8 @@ class Appender;
 class AppenderManager;
 END_LOG4CXX_NS
 
-struct CustomFormat;
-class HttpConnection;
+class CustomFormat;
+class HttpSession;
 class AccessLog  
 {
     LOG4CXX_NS::Appender        * m_pAppender;
@@ -51,16 +52,17 @@ class AccessLog
     AutoBuf m_buf;
 
     int appendStr( const char * pStr, int len);
-    void appendStrNoQuote( const char * pStr, int len );
-    void customLog( HttpConnection* pConn );
+    static int appendStrNoQuote( char * pBuf, int len, const char * pSrc, int srcLen, AccessLog * pLogger );
+    void customLog( HttpSession* pSession, CustomFormat * pLogFmt );
+    static int customLog( HttpSession* pSession, CustomFormat * pLogFmt, char * pOutBuf, int buf_len,  AccessLog * pLogger );
     
 public: 
     explicit AccessLog(const char * pPath);
     AccessLog();
     ~AccessLog();
     int init( const char * pName, int pipe );
-    void log( HttpConnection* pConn );
-    void log( const char * pVHostName, int len, HttpConnection* pConn );
+    void log( HttpSession* pSession );
+    void log( const char * pVHostName, int len, HttpSession* pSession );
     void flush();
 
     void accessLogReferer( int referer );
@@ -81,7 +83,15 @@ public:
     const char * getLogPath() const;
     int  reopenExist();
 
+    void closeNonPiped();
+    void setRollingSize( off_t size );
     int  setCustomLog( const char * pFmt );
+    static int  getLogString( HttpSession * pSession, CustomFormat* pLogFmt, char * pBuf, int bufLen )
+    {
+        return customLog( pSession, pLogFmt, pBuf, bufLen, NULL );
+    }
+
+    static CustomFormat * parseLogFormat( const char * pFmt );
     
 };
 

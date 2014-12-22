@@ -95,7 +95,6 @@ class StatusCode
     const char * m_status;
     int          status_size;
     char       * m_pHeaderBody;
-    int          m_iHeaderSize;    
     int          m_iBodySize;
 public:
     
@@ -200,14 +199,9 @@ public:
     {
         return s_pSC[code].m_pHeaderBody;
     }
-    static int getHeadersLen( http_sc_t code )
-    {
-        return s_pSC[code].m_iHeaderSize;
-    }
     static const char * getRealHtml( http_sc_t code )
     {
-        return (s_pSC[code].m_pHeaderBody)?s_pSC[code].m_pHeaderBody + 
-            s_pSC[code].m_iHeaderSize : NULL;
+        return (s_pSC[code].m_pHeaderBody)?s_pSC[code].m_pHeaderBody : NULL;
     }    
     static int getBodyLen( http_sc_t code )
     {
@@ -226,6 +220,22 @@ public:
         else
             return -1;
     }
+    
+    static int indexToCode( unsigned int index )
+    {
+        if (index < 1 || index >= SC_END)
+            return -1;
+        
+        int iStage;
+        for (iStage= 2; iStage<7; ++iStage)
+        {
+            if (index < (unsigned int )s_codeToIndex[iStage])
+                break;
+        }
+        --iStage;
+        return iStage * 100 + index - s_codeToIndex[iStage];
+    }
+    
     void operator=( http_sc_t code )  { setCode( code );   }
 
     static bool fatalError( http_sc_t code)

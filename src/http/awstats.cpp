@@ -20,10 +20,13 @@
 #include <http/httplog.h>
 #include <http/httpvhost.h>
 #include <http/accesslog.h>
-
+#include <http/handlertype.h>
+#include <http/httpmime.h>
 #include <log4cxx/logrotate.h>
 #include <util/ni_fio.h>
-
+#include "util/configctx.h"
+#include <util/xmlnode.h>
+#include <util/ssnprintf.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -35,7 +38,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <util/ssnprintf.h>
+
 
 
 Awstats::Awstats()
@@ -88,7 +91,6 @@ static const char * s_pList[] =
 {
     "LogFile=\"%s.awstats\"\n",
     "LogType=W\n",
-    "LogFormat=1\n",
     "SiteDomain=\"%s\"\n",
     "HostAliases=\"%s\"\n",
     "DirData=\"%s/data\"\n",
@@ -97,10 +99,10 @@ static const char * s_pList[] =
 };
 
 static int s_pKeyLen[] =
-{   7, 7, 9, 10, 11, 7, 6, 8    };
+{   7, 7, 10, 11, 7, 6, 8    };
 
 static int s_pLineLen[] =
-{   0, 10, 12, 10, 11, 7, 6, 25    };
+{   0, 10, 10, 11, 7, 6, 25    };
 
 
 static int findKeyInList( const char * pCur )
@@ -187,25 +189,24 @@ int Awstats::processLine( const HttpVHost * pVHost, int fdConf,
         n = safe_snprintf( achBuf, sizeof( achBuf ), s_pList[ret],
                     pVHost->getAccessLogPath() + len );
         break;
-    case 3:
+    case 2:
         n = safe_snprintf( achBuf, sizeof( achBuf ), s_pList[ret],
                     m_sSiteDomain.c_str() );
         break;
-    case 4:
+    case 3:
         n = safe_snprintf( achBuf, sizeof( achBuf ), s_pList[ret],
                     m_sSiteAliases.c_str() );
         break;
-    case 5:
+    case 4:
         n = safe_snprintf( achBuf, sizeof( achBuf ), s_pList[ret],
                     m_sWorkingDir.c_str() + len );
         break;
-    case 6:
+    case 5:
         n = safe_snprintf( achBuf, sizeof( achBuf ), s_pList[ret],
                     m_sAwstatsURI.c_str() );
         break;
     case 1:
-    case 2:
-    case 7:
+    case 6:
         pBuf = s_pList[ret];
         n = s_pLineLen[ret];
         break;
@@ -520,4 +521,138 @@ int Awstats::updateIfNeed( long curTime, const HttpVHost * pVHost )
     }
     return ret;
 }
+void Awstats::config(HttpVHost *pVHost, int val, char* achBuf, const XmlNode *pAwNode, 
+              char* iconURI, const char* vhDomain, int vhAliasesLen )
+{
+    const char *pURI;
+    const char *pValue;
+    int handlerType;
+    int len = strlen( achBuf );
+    int iChrootLen = 0;
+    if ( HttpGlobals::s_psChroot != NULL )
+    iChrootLen = HttpGlobals::s_psChroot->len();
+    setMode( val );
+    
 
+    if ( achBuf[len - 1] == '/' )
+        achBuf[len - 1] = 0;
+
+    setWorkingDir( achBuf );
+
+    pURI = pAwNode->getChildValue( "awstatsURI" );
+
+    if ( ( !pURI ) || ( *pURI != '/' ) || ( * ( pURI + strlen( pURI ) - 1 ) != '/' )
+            || ( strlen( pURI ) > 100 ) )
+    {
+        ConfigCtx::getCurConfigCtx()->log_warn( "AWStats URI is invalid"
+                             ", use default [/awstats/]." );
+        iconURI[9] = 0;;
+        pURI = iconURI;
+    }
+
+    setURI( pURI );
+
+    if ( val == AWS_STATIC )
+    {
+        handlerType = HandlerType::HT_NULL;
+        strcat( achBuf, "/html/" );
+    }
+    else
+    {
+        ConfigCtx::getCurConfigCtx()->getValidPath( achBuf, "$SERVER_ROOT/add-ons/awstats/wwwroot/cgi-bin/",
+                      "AWStats CGI-BIN directory" );
+
+        if ( pVHost->getRootContext().determineMime( "pl", NULL )->getHandler()->getHandlerType() )
+            handlerType = HandlerType::HT_NULL;
+        else
+            handlerType = HandlerType::HT_CGI;
+    }
+
+    HttpContext *pContext =
+        pVHost->addContext( pURI, handlerType, &achBuf[iChrootLen], NULL, 1 );
+
+    if ( val == AWS_STATIC )
+    {
+        safe_snprintf( achBuf, 8192,
+                       "RewriteRule ^$ awstats.%s.html\n",
+                       pVHost->getName() );
+    }
+    else
+    {
+        safe_snprintf( achBuf, 8192, "RewriteRule ^$ awstats.pl\n"
+                       "RewriteCond %%{QUERY_STRING} !configdir=\n"
+                       "RewriteRule ^awstats.pl "
+                       "$0?config=%s&configdir=%s/conf [QSA]\n",
+                       pVHost->getName(),
+                       getWorkingDir() + iChrootLen );
+        pContext->setUidMode( UID_DOCROOT );
+    }
+
+    pContext->enableRewrite( 1 );
+    pContext->configRewriteRule( pVHost->getRewriteMaps(), achBuf );
+
+    pValue = pAwNode->getChildValue( "realm" );
+
+    if ( pValue )
+        pVHost->configAuthRealm( pContext, pValue );
+
+    pValue = pAwNode->getChildValue( "siteDomain" );
+
+    if ( !pValue )
+    {
+        ConfigCtx::getCurConfigCtx()->log_warn( "SiteDomain configuration is invalid"
+                             ", use default [%s].",  vhDomain );
+        pValue = vhDomain;
+    }
+    else
+    {
+        ConfigCtx::getCurConfigCtx()->expandDomainNames( pValue, achBuf, 4096 );
+        pValue = achBuf;
+    }
+
+    setSiteDomain( pValue );
+
+    pValue = pAwNode->getChildValue( "siteAliases" );
+    int needConvert = 1;
+
+    if ( !pValue )
+    {
+        if ( vhAliasesLen == 0 )
+        {
+            safe_snprintf( achBuf, 8192, "127.0.0.1 localhost REGEX[%s]",
+                           getSiteDomain() );
+            ConfigCtx::getCurConfigCtx()->log_warn( "SiteAliases configuration is invalid"
+                                 ", use default [%s].", achBuf );
+            pValue = achBuf;
+            needConvert = 0;
+        }
+        else
+            pValue = "$vh_aliases";
+    }
+
+    if ( needConvert )
+    {
+        ConfigCtx::getCurConfigCtx()->expandDomainNames( pValue, &achBuf[4096], 4096, ' ' );
+        ConfigCtx::getCurConfigCtx()->convertToRegex( &achBuf[4096], achBuf, 4096 );
+        pValue = achBuf;
+        ConfigCtx::getCurConfigCtx()->log_info( "SiteAliases is set to '%s'", achBuf );
+    }
+
+    setAliases( pValue );
+
+    val = ConfigCtx::getCurConfigCtx()->getLongValue( pAwNode, "updateInterval", 3600, 3600 * 24, 3600 * 24 );
+
+    if ( val % 3600 != 0 )
+        val = ( ( val + 3599 ) / 3600 ) * 3600;
+
+    setInterval( val );
+
+    val = ConfigCtx::getCurConfigCtx()->getLongValue( pAwNode, "updateOffset", 0, LONG_MAX, 0 );
+
+    if ( val > getInterval() )
+        val %= getInterval();
+
+    setOffset( val );
+
+    pVHost->setAwstats( this );    
+}
