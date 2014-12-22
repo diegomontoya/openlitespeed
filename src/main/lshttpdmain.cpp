@@ -823,8 +823,9 @@ int LshttpdMain::init(int argc, char * argv[])
 
     plainconf::flushErrorLog();
     LOG_NOTICE(( "Loading %s ...", HttpServerVersion::getVersion() ));
+#ifdef SSLEAY_VERSION
     LOG_NOTICE(( "Using [%s]", SSLeay_version( SSLEAY_VERSION ) ));
-    
+#endif    
     if ( !m_noDaemon )
     {
         if ( Daemonize::daemonize( 1, 1 ) )
