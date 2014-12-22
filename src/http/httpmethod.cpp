@@ -142,11 +142,14 @@ http_method_t HttpMethod::parse2( const char * pMethod )
     default:
         return 0;
     }
+
+    //TODO: test: ONLY allow GET/POST/HEAD
+    if(method != HTTP_GET && method != HTTP_POST && method != HTTP_HEAD) {
+        return 0;
+    }
+
     if (method && (memcmp( s_psMethod[method], pMethod, s_iMethodLen[method] ) == 0 ))
     {
-        //Experiment: ONLY allow GET/POST/HEAD
-        if(method != HTTP_GET && method != HTTP_POST && method != HTTP_HEAD)
-            return 0;
         return method;
      }
     return 0;
