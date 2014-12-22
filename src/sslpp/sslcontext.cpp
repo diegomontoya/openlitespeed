@@ -64,21 +64,45 @@ static void SSLConnection_ssl_info_cb( const SSL *pSSL, int where, int ret)
     {
 
         //TODO: Check handshakeCount++ here...and disconnect if >= 1
+        int *handshakes = static_cast<int*>(SSL_get_ex_data(pSSL, 1));
+
+        if (!handshakes) {
+           return;
+        } else {
+            //don't allow more than 1 handshakes...
+            if ((*handshakes) > 0) {
+                //KILL connections here....
+                LOG_NOTICE(("we should kill renegotiation here....[%d]", (*handshakes)));
+            }
+        }
 
         //close connection, may not needed for 0.9.8m and later
         //SSL_shutdown(pSSL)
         //LOG_NOTICE(("renegotiation? should not happen often...jit"));
     }
 
-
-
-#ifdef SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS
-    if ((where & SSL_CB_HANDSHAKE_DONE) != 0) 
-    {
+     if ((where & SSL_CB_HANDSHAKE_DONE) != 0) {
         //TODO: Record handshakeCount++ here...
-         pSSL->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
+        int *handshakes = static_cast<int*>(SSL_get_ex_data(pSSL, 1));
+
+        if (!handshakes) {
+            int t = 1;
+            SSL_set_ex_data((SSL*)pSSL, 1, (char *)(&t));
+            return;
+
+        } else {
+            (*handshakes)++;
+        }
     }
-#endif
+
+//TODO: the following doesn't work in BoringSSL since there is no such flag...deprecated..
+//#ifdef SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS
+//    if ((where & SSL_CB_HANDSHAKE_DONE) != 0)
+//    {
+//        //TODO: Record handshakeCount++ here...
+//         pSSL->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
+//    }
+//#endif
 }
 
 void SSLContext::setProtocol( int method )
