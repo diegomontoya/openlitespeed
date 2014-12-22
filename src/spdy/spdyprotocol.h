@@ -188,14 +188,14 @@ inline uint32_t beReadUint32Adv( unsigned char * &p )
     return v ;
 }
 
-inline unsigned char * beWriteUint16( unsigned char * p, uint16_t v )
+inline char * beWriteUint16( char * p, uint16_t v )
 {
     *p++ = v >> 8;
     *p++ = v & 0xff;
     return p;
 }
 
-inline unsigned char * beWriteUint32( unsigned char * p, uint32_t v )
+inline char * beWriteUint32( char * p, uint32_t v )
 {
     *p++ = v >> 24;
     *p++ = ( v >> 16 ) & 0xff;
@@ -233,7 +233,7 @@ public:
     uint32_t getID() const  { return ( ntohl(m_unFlagId.m_ui) & 0xFFFFFF); }
 };
 
-#define SPDY_MAX_DATAFRAM_SIZE    1048576
-#define SPDY_FCW_INIT_SIZE        983040 //1048576 - 65536
+#define SPDY_MAX_DATAFRAM_SIZE    65536
+#define SPDY_FCW_INIT_SIZE        65536
 
 #endif // SPDYPROTOCOL_H
