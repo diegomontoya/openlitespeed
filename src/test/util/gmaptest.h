@@ -16,11 +16,12 @@
 *    along with this program. If not, see http://www.gnu.org/licenses/.      *
 *****************************************************************************/
 #ifdef RUN_TEST
- 
-#ifndef LOOPBUFTEST_H
-#define LOOPBUFTEST_H
 
-#include <stdio.h>
+#ifndef GMAPTEST_H
+#define GMAPTEST_H
+
+#include <string.h>
+
 
 #endif
 

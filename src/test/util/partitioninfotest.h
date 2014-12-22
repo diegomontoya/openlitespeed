@@ -17,11 +17,11 @@
 *****************************************************************************/
 #ifdef RUN_TEST
  
-#ifndef LOOPBUFTEST_H
-#define LOOPBUFTEST_H
+#ifndef PARTITIONINFOTEST_H
+#define PARTITIONINFOTEST_H
 
-#include <stdio.h>
+
+#endif
 
 #endif
 
-#endif
