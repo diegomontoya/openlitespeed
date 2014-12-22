@@ -60,38 +60,32 @@ long SSLContext::setSessionTimeout( long timeout )
 
 static void SSLConnection_ssl_info_cb( const SSL *pSSL, int where, int ret)
 {
+
     if ((where & SSL_CB_HANDSHAKE_START) != 0)
     {
-
         //TODO: Check handshakeCount++ here...and disconnect if >= 1
-        int *handshakes = static_cast<int*>(SSL_get_ex_data(pSSL, 1));
+        SSLConnection *sslconn = static_cast<SSLConnection*>(SSL_get_ex_data(pSSL,0));
 
-        if (!handshakes) {
-           return;
+        if (!sslconn) {
+            LOG_NOTICE(("no sslconn SSL_CB_HANDSHAKE_START, should not happen here"));
         } else {
             //don't allow more than 1 handshakes...
-            if ((*handshakes) > 0) {
+            if ((*sslconn).m_handshaked) {
                 //KILL connections here....
-                LOG_NOTICE(("we should kill renegotiation here....[%d]", (*handshakes)));
+                LOG_NOTICE(("we should kill renegotiation here...."));
+                (*sslconn).shutdown(1);
             }
         }
-
-        //close connection, may not needed for 0.9.8m and later
-        //SSL_shutdown(pSSL)
-        //LOG_NOTICE(("renegotiation? should not happen often...jit"));
     }
 
      if ((where & SSL_CB_HANDSHAKE_DONE) != 0) {
         //TODO: Record handshakeCount++ here...
-        int *handshakes = static_cast<int*>(SSL_get_ex_data(pSSL, 1));
+         SSLConnection *sslconn = static_cast<SSLConnection*>(SSL_get_ex_data(pSSL,0));
 
-        if (!handshakes) {
-            int t = 1;
-            SSL_set_ex_data((SSL*)pSSL, 1, (char *)(&t));
-            return;
-
+        if (!sslconn) {
+          LOG_NOTICE(("no sslconn SSL_CB_HANDSHAKE_DONE, should not happen here"));
         } else {
-            (*handshakes)++;
+            (*sslconn).handshaked = true;
         }
     }
 

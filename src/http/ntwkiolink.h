@@ -241,6 +241,9 @@ public:
         m_pFnList = s_pCur_fn_list_list->m_pSSL;
         m_ssl.setSSL( pSSL );
         m_ssl.setfd( getfd() );
+
+        //store m_ssl pointer to 0 index of SSL
+        SSL_set_ex_data(pSSL, 0, (char *)(&m_ssl))
     }
     
     SSLConnection* getSSL()     {   return &m_ssl;  }
