@@ -47,7 +47,7 @@ pcre_jit_stack * Pcregex::get_jit_stack(void * inJit)
 {
     //pcre_jit_stack * real_inJit = (pcre_jit_stack *)inJit;
 
-    if ( !s_jit_key_inited ) {
+    if ( !s_jit_key_inited )
         init_jit_stack();
     }
 
@@ -66,7 +66,6 @@ pcre_jit_stack * Pcregex::get_jit_stack(void * inJit)
 
     return jit_stack;
 }
-
 #endif
 #endif
 

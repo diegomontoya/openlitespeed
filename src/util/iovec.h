@@ -83,7 +83,8 @@ public:
 
     void appendCombine( const void *pBuf, size_t size )
     {
-        if ( pBuf == (char *)((m_pEnd-1)->iov_base) + (m_pEnd-1)->iov_len )
+        if ( m_pBegin != m_pEnd && 
+	    pBuf == (char *)((m_pEnd-1)->iov_base) + (m_pEnd-1)->iov_len )
             (m_pEnd - 1)->iov_len += size;
         else
             append( pBuf, size );
@@ -91,7 +92,7 @@ public:
     
     void append( const struct iovec* vector, int len )
     {
-        assert( len < (struct iovec*)m_store + MAX_VECTOR_LEN - m_pEnd );
+        assert( len <= (struct iovec*)m_store + MAX_VECTOR_LEN - m_pEnd );
         memmove( m_pEnd, vector, sizeof( struct iovec ) * len );
         m_pEnd += len;
     }
@@ -155,6 +156,7 @@ public:
     const_iterator end() const   {  return m_pEnd;      }
     void setEnd( iterator end )         {   m_pEnd = end;   }
     void setBegin( iterator begin )     {   m_pBegin = begin;   }
+    void adjust( const char* pOld, const char* pNew, int len );
 };
 
 #endif

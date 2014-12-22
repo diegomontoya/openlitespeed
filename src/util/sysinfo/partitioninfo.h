@@ -15,44 +15,35 @@
 *    You should have received a copy of the GNU General Public License       *
 *    along with this program. If not, see http://www.gnu.org/licenses/.      *
 *****************************************************************************/
-#ifndef LOGTRACKER_H
-#define LOGTRACKER_H
 
+#ifndef PARTITIONINFO_H
+#define PARTITIONINFO_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <inttypes.h>
 
-#include <log4cxx/ilog.h>
-#include <util/autostr.h>
+#if defined(__linux) || defined(sun)
+#include <sys/statvfs.h>
+#elif defined(__FreeBSD__) || defined(__APPLE__)
+#include <sys/param.h>
+#include <sys/mount.h>
+#endif
 
-#define MAX_LOGID_LEN   127
-  
-class LogTracker 
+class PartitionInfo
 {
-    AutoStr2            m_logId;
-    LOG4CXX_NS::Logger* m_pLogger;
+public:
+    PartitionInfo();
+    ~PartitionInfo();
+    static int getPartitionInfo( const char* path, uint64_t *outTotal, uint64_t *outFree );
     
-public: 
-    LogTracker();
-    ~LogTracker();
+private:
+    PartitionInfo( const PartitionInfo& other );
+    PartitionInfo& operator= ( const PartitionInfo& other );
+    bool operator== ( const PartitionInfo& other );
     
-    AutoStr2& getIdBuf()             {   return m_logId;     }
-    //const char * getLogId() const    
-    //{      
-    //return m_logID.c_str();  }
-    const char * getLogId()          
-    {   
-        if ( isLogIdBuilt() )
-            return m_logId.c_str();
-        return buildLogId();
-    }
-    
-    LOG4CXX_NS::Logger* getLogger() const   {   return m_pLogger;   }
-    void setLogger( LOG4CXX_NS::Logger* pLogger)
-    {   m_pLogger = pLogger;    }
-    
-    void clearLogId()     {   *m_logId.buf() = 0;      }
-    int  isLogIdBuilt() const       {   return *m_logId.c_str() != '\0';   }
-    virtual const char * buildLogId() = 0;
-    
+private:
 };
 
-#endif
+#endif // PARTITIONINFO_H
+

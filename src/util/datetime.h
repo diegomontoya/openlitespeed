@@ -15,44 +15,25 @@
 *    You should have received a copy of the GNU General Public License       *
 *    along with this program. If not, see http://www.gnu.org/licenses/.      *
 *****************************************************************************/
-#ifndef LOGTRACKER_H
-#define LOGTRACKER_H
+#ifndef DATETIME_H
+#define DATETIME_H
 
 
 
-#include <log4cxx/ilog.h>
-#include <util/autostr.h>
+#include <time.h>
 
-#define MAX_LOGID_LEN   127
-  
-class LogTracker 
+#define RFC_1123_TIME_LEN 29
+class DateTime
 {
-    AutoStr2            m_logId;
-    LOG4CXX_NS::Logger* m_pLogger;
-    
-public: 
-    LogTracker();
-    ~LogTracker();
-    
-    AutoStr2& getIdBuf()             {   return m_logId;     }
-    //const char * getLogId() const    
-    //{      
-    //return m_logID.c_str();  }
-    const char * getLogId()          
-    {   
-        if ( isLogIdBuilt() )
-            return m_logId.c_str();
-        return buildLogId();
-    }
-    
-    LOG4CXX_NS::Logger* getLogger() const   {   return m_pLogger;   }
-    void setLogger( LOG4CXX_NS::Logger* pLogger)
-    {   m_pLogger = pLogger;    }
-    
-    void clearLogId()     {   *m_logId.buf() = 0;      }
-    int  isLogIdBuilt() const       {   return *m_logId.c_str() != '\0';   }
-    virtual const char * buildLogId() = 0;
-    
+public:
+    static time_t s_curTime; 
+    static int    s_curTimeUs;
+    DateTime();
+    ~DateTime();
+
+    static time_t parseHttpTime( const char *s);
+    static char*  getRFCTime( time_t t, char * buf );
+    static char*  getLogTime( time_t lTime, char * pBuf, int bGMT = 0 );
 };
 
 #endif

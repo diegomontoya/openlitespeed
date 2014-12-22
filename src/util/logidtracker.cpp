@@ -15,44 +15,7 @@
 *    You should have received a copy of the GNU General Public License       *
 *    along with this program. If not, see http://www.gnu.org/licenses/.      *
 *****************************************************************************/
-#ifndef LOGTRACKER_H
-#define LOGTRACKER_H
+#include "logidtracker.h"
 
-
-
-#include <log4cxx/ilog.h>
-#include <util/autostr.h>
-
-#define MAX_LOGID_LEN   127
-  
-class LogTracker 
-{
-    AutoStr2            m_logId;
-    LOG4CXX_NS::Logger* m_pLogger;
-    
-public: 
-    LogTracker();
-    ~LogTracker();
-    
-    AutoStr2& getIdBuf()             {   return m_logId;     }
-    //const char * getLogId() const    
-    //{      
-    //return m_logID.c_str();  }
-    const char * getLogId()          
-    {   
-        if ( isLogIdBuilt() )
-            return m_logId.c_str();
-        return buildLogId();
-    }
-    
-    LOG4CXX_NS::Logger* getLogger() const   {   return m_pLogger;   }
-    void setLogger( LOG4CXX_NS::Logger* pLogger)
-    {   m_pLogger = pLogger;    }
-    
-    void clearLogId()     {   *m_logId.buf() = 0;      }
-    int  isLogIdBuilt() const       {   return *m_logId.c_str() != '\0';   }
-    virtual const char * buildLogId() = 0;
-    
-};
-
-#endif
+char  LogIdTracker::s_sLogId[128] = "config" ;
+int   LogIdTracker::s_iIdLen = 6;

@@ -15,44 +15,48 @@
 *    You should have received a copy of the GNU General Public License       *
 *    along with this program. If not, see http://www.gnu.org/licenses/.      *
 *****************************************************************************/
-#ifndef LOGTRACKER_H
-#define LOGTRACKER_H
+#ifndef LOGIDTRACKER_H
+#define LOGIDTRACKER_H
 
-
-
-#include <log4cxx/ilog.h>
 #include <util/autostr.h>
 
-#define MAX_LOGID_LEN   127
-  
-class LogTracker 
+class LogIdTracker
 {
-    AutoStr2            m_logId;
-    LOG4CXX_NS::Logger* m_pLogger;
+    static char  s_sLogId[128];
+    static int   s_iIdLen;
     
-public: 
-    LogTracker();
-    ~LogTracker();
+    AutoStr m_sOldId;
+public:
+    LogIdTracker( const char * pNewId )
+    {
+        m_sOldId = getLogId();
+        setLogId( pNewId );
+    }
+    LogIdTracker()
+    {
+        m_sOldId = getLogId();
+    }
+    ~LogIdTracker()
+    {
+        setLogId( m_sOldId.c_str() );
+    }
+    static const char * getLogId()
+    {   return s_sLogId;    }
     
-    AutoStr2& getIdBuf()             {   return m_logId;     }
-    //const char * getLogId() const    
-    //{      
-    //return m_logID.c_str();  }
-    const char * getLogId()          
-    {   
-        if ( isLogIdBuilt() )
-            return m_logId.c_str();
-        return buildLogId();
+    static void setLogId( const char * pId )
+    {
+        strncpy( s_sLogId, pId, sizeof( s_sLogId ) - 1 );
+        s_sLogId[ sizeof( s_sLogId ) - 1 ] = 0;
+        s_iIdLen = strlen( s_sLogId ); 
     }
     
-    LOG4CXX_NS::Logger* getLogger() const   {   return m_pLogger;   }
-    void setLogger( LOG4CXX_NS::Logger* pLogger)
-    {   m_pLogger = pLogger;    }
-    
-    void clearLogId()     {   *m_logId.buf() = 0;      }
-    int  isLogIdBuilt() const       {   return *m_logId.c_str() != '\0';   }
-    virtual const char * buildLogId() = 0;
-    
+    static void appendLogId( const char * pId )
+    {
+        strncpy( s_sLogId + s_iIdLen, pId, sizeof( s_sLogId ) -1 - s_iIdLen );
+        s_sLogId[ sizeof( s_sLogId ) - 1 ] = 0;
+        s_iIdLen += strlen( s_sLogId + s_iIdLen );
+    }
 };
 
-#endif
+
+#endif // LOGIDTRACKER_H

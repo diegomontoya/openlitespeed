@@ -49,6 +49,8 @@ public:
     LinkedObj * head()   {   return  &m_head;      }
     LinkedObj * removeNext( LinkedObj * pObj )
     {   --m_iTotal; return pObj->removeNext();  }
+    void addNext( LinkedObj * pObj, LinkedObj * pNext )
+    {   ++m_iTotal;  pObj->addNext(pNext);  }
 };
 
 class DLinkQueue
@@ -98,7 +100,7 @@ public:
             --m_iTotal;
             return m_head.removeNext();
         }
-        assert( m_iTotal = 0 );
+        assert( m_iTotal == 0 );
         return NULL;
     }
 
