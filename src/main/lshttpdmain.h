@@ -24,7 +24,7 @@
 #include <util/guardedapp.h>
 #include <util/linkobjpool.h>
 #include <util/pidfile.h>
-
+#include <util/pcutil.h>
 
 #include <sys/types.h>
 
@@ -39,6 +39,7 @@ public:
     unsigned short  m_iProcNo;
     short           m_iState;
     char *          m_pBlackBoard;
+
     ChildProc()
         : m_pid( -1 )
         , m_iProcNo( 0 )
@@ -53,13 +54,13 @@ public:
 };
 
 
-class HttpServerBuilder;
+class HttpConfigLoader;
 class HttpServer;
   
 class LshttpdMain
 {
     HttpServer        * m_pServer;
-    HttpServerBuilder * m_pBuilder;
+    HttpConfigLoader * m_pBuilder;
     AutoStr             m_sCtrlFile;
     PidFile             m_pidFile;
     pid_t               m_pid;
@@ -98,6 +99,7 @@ class LshttpdMain
     int  checkRestartReq();
     int  clearToStopApp();
     
+    
     int config();
     int reconfig();
     int init(int argc, char * argv[]);
@@ -129,6 +131,9 @@ class LshttpdMain
     int             processAdminBuffer( char * p, char * pEnd );
     
     void            processSignal();
+    
+    int             getNumCores();
+    void            setAffinity( pid_t pid, int cpuId );
 
 public: 
 	LshttpdMain();
