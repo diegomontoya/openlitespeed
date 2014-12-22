@@ -95,9 +95,6 @@
 #define STATUS_FILE         DEFAULT_TMP_DIR "/.status"
 #define FILEMODE            0644
 
-#include "sslpp/sslocspstapling.h"
-
-
 static int s_achPid[256];
 static int s_curPid = 0;
 
@@ -1933,7 +1930,7 @@ int HttpServerImpl::configServerBasic2( const XmlNode *pRoot, const char* pSwapD
             setSwapDir( pSwapDir );
         }
         safe_snprintf( achBuf, 4096, "%s/tmp/ocspcache/", HttpGlobals::s_pServerRoot );
-        SslOcspStapling::setRespTempPath( achBuf );
+
 
         m_serverContext.configAutoIndex( pRoot );
         m_serverContext.configDirIndex( pRoot );
