@@ -240,7 +240,7 @@ int SSLContext::init( int iMethod )
 
         //increase defaults
 //	    setSessionCacheMode( SSL_SESS_CACHE_SERVER | SSL_SESS_CACHE_NO_AUTO_CLEAR);
-//	    setSessionTimeout( 100800 );
+	    setSessionTimeout( 100800 );
 //        setSessionCacheSize ( 0 );
 
         setSessionCacheMode( SSL_SESS_CACHE_OFF );
