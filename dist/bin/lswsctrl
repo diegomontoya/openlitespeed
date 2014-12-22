@@ -1,7 +1,9 @@
 #!/bin/sh
 
 #enable jemalloc
-export LD_PRELOAD=/usr/local/lib/libjemalloc.so
+#with jemalloc, malloc() is faster but free() is slower
+#and there is a bug causing SSL_free() to crash..related to jemalloc usage...
+#export LD_PRELOAD=/usr/local/lib/libjemalloc.so
 
 # resolve links - $0 may be a softlink
 PROG="$0"
