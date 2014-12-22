@@ -33,6 +33,7 @@
 #include <lsiapi/internal.h>
 #include <lsiapi/lsimoduledata.h>
 #include <lsiapi/lsiapihooks.h>
+#include <openssl/ssl.h>
 
 class HttpListener;
 class VHostMap;
@@ -264,6 +265,9 @@ public:
         m_pFpList = s_pCur_fp_list_list->m_pSSL;
         m_ssl.setSSL( pSSL );
         m_ssl.setfd( getfd() );
+
+        //store m_ssl pointer to 0 index of ex_data
+        SSL_set_ex_data(pSSL, 0, (char *)(&m_ssl));
     }
     
     SSLConnection* getSSL()     {   return &m_ssl;  }
