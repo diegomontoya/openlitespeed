@@ -29,6 +29,7 @@
 #include <spdy/spdyprotocol.h>
 
 #include <sys/types.h>
+#include <openssl/ssl.h>
 
 #define IO_HTTP_ERR 4
 
@@ -243,7 +244,7 @@ public:
         m_ssl.setfd( getfd() );
 
         //store m_ssl pointer to 0 index of SSL
-        SSL_set_ex_data(pSSL, 0, (char *)(&m_ssl))
+        SSL_set_ex_data(pSSL, 0, (char *)(&m_ssl));
     }
     
     SSLConnection* getSSL()     {   return &m_ssl;  }

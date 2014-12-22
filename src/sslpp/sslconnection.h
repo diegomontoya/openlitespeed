@@ -31,12 +31,14 @@ class SSLConnection
     SSL*    m_ssl;
     int     m_iStatus;
     int     m_iWant;
-    //already handshaked flag to prevent renegotiation
-    bool    m_handshaked;
+
     
     SSLConnection( const SSLConnection& rhs ) {}
     void operator=( const SSLConnection& rhs ) {}
 public:
+    //already handshaked flag to prevent renegotiation
+    bool    m_handshaked;
+
     enum
     {
         DISCONNECTED,

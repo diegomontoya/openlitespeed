@@ -32,6 +32,7 @@ SSLConnection::SSLConnection()
     : m_ssl( NULL )
     , m_iStatus( DISCONNECTED )
     , m_iWant( 0)
+    , m_handshaked( false )
 {
 }
 
@@ -39,6 +40,7 @@ SSLConnection::SSLConnection( SSL* ssl)
     : m_ssl( ssl )
     , m_iStatus( DISCONNECTED )
     , m_iWant( 0)
+    , m_handshaked( false )
 {
     if ( !m_ssl )
         throw SSLError(s_pErrInvldSSL);
@@ -48,6 +50,7 @@ SSLConnection::SSLConnection( SSL* ssl, int fd )
     : m_ssl( ssl )
     , m_iStatus( DISCONNECTED )
     , m_iWant( 0)
+    , m_handshaked( false )
 {
     if ( !m_ssl )
         throw SSLError(s_pErrInvldSSL);
@@ -59,6 +62,7 @@ SSLConnection::SSLConnection( SSL* ssl, int rfd, int wfd )
     : m_ssl( ssl )
     , m_iStatus( DISCONNECTED )
     , m_iWant( 0)
+    , m_handshaked( false )
 {
     if ( !m_ssl )
         throw SSLError(s_pErrInvldSSL);

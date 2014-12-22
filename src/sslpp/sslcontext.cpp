@@ -85,7 +85,7 @@ static void SSLConnection_ssl_info_cb( const SSL *pSSL, int where, int ret)
         if (!sslconn) {
           LOG_NOTICE(("no sslconn SSL_CB_HANDSHAKE_DONE, should not happen here"));
         } else {
-            (*sslconn).handshaked = true;
+            (*sslconn).m_handshaked = true;
         }
     }
 
