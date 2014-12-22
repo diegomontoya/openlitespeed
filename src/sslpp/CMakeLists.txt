@@ -31,6 +31,6 @@ add_library(sslpp STATIC ${sslpp_STAT_SRCS})
 #libsslpp_a_SOURCES = sslcert.cpp sslerror.cpp sslconnection.cpp sslcontext.cpp
 #
 #
-#EXTRA_DIST = sslcontext.cpp sslcontext.h sslconnection.cpp sslconnection.h sslerror.cpp sslerror.h sslcert.cpp sslcert.h
+#EXTRA_DIST = sslcontext.cpp sslcontext.h sslconnection.cpp sslconnection.h sslerror.cpp sslerror.h sslcert.cpp sslcert.h sslengine.h
 #
 ######## kdevelop will overwrite this part!!! (end)############

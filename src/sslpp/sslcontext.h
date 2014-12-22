@@ -19,13 +19,16 @@
 #define SSLCONTEXT_H
 
 
+#include <stdio.h>
 #include <sys/stat.h>
 #include <util/autostr.h>
+#include <util/pool.h>
 typedef struct ssl_st SSL;
 typedef struct ssl_ctx_st SSL_CTX;
 
-class ConfigCtx;
+
 class XmlNode;
+class ConfigCtx;
 
 class SSLContext
 {
@@ -44,6 +47,7 @@ private:
 
     void release();
     int init( int method = SSL_ALL);
+
     void updateProtocol( int method );
 
 public:
@@ -101,7 +105,15 @@ public:
     int enableSpdy( int level );
     int getEnableSpdy() const   {   return m_iEnableSpdy;   } 
 
+
+    SSLContext * setKeyCertCipher( const char *pCertFile,
+                    const char *pKeyFile, const char * pCAFile, const char * pCAPath,
+                    const char * pCiphers, int certChain, int cv, int renegProtect );    
+    SSLContext *config( const XmlNode *pNode );
+
+    void configCRL( const XmlNode *pNode, SSLContext *pSSL );
     int  initECDH();
     int  initDH( const char * pFile );
+    
 };
 #endif

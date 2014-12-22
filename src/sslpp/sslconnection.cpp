@@ -25,8 +25,10 @@
 #include <string.h>
 #include <assert.h>
 #include <config.h>
+#include <sys/uio.h>
 
-static const char * s_pErrInvldSSL = "Invalid Parameter, SSL* ssl is null\n";
+
+//static const char * s_pErrInvldSSL = "Invalid Parameter, SSL* ssl is null\n";
 
 SSLConnection::SSLConnection()
     : m_ssl( NULL )
@@ -42,8 +44,6 @@ SSLConnection::SSLConnection( SSL* ssl)
     , m_iWant( 0)
     , m_handshaked( false )
 {
-    if ( !m_ssl )
-        throw SSLError(s_pErrInvldSSL);
 }
 
 SSLConnection::SSLConnection( SSL* ssl, int fd )
@@ -52,10 +52,7 @@ SSLConnection::SSLConnection( SSL* ssl, int fd )
     , m_iWant( 0)
     , m_handshaked( false )
 {
-    if ( !m_ssl )
-        throw SSLError(s_pErrInvldSSL);
-    if ( SSL_set_fd( m_ssl, fd ) == 0 )
-        throw SSLError();
+    SSL_set_fd( m_ssl, fd );
 }
 
 SSLConnection::SSLConnection( SSL* ssl, int rfd, int wfd )
@@ -64,11 +61,8 @@ SSLConnection::SSLConnection( SSL* ssl, int rfd, int wfd )
     , m_iWant( 0)
     , m_handshaked( false )
 {
-    if ( !m_ssl )
-        throw SSLError(s_pErrInvldSSL);
-    if (( SSL_set_rfd( m_ssl, rfd ) == 0 )||
-        ( SSL_set_wfd( m_ssl, wfd ) == 0 ))
-        throw SSLError();
+    SSL_set_rfd( m_ssl, rfd );
+    SSL_set_wfd( m_ssl, wfd );
 }
 
 SSLConnection::~SSLConnection()
@@ -133,6 +127,8 @@ int SSLConnection::write( const char * pBuf, int len )
 {
     assert( m_ssl );
     m_iWant = 0;
+    if (len <= 0)
+        return 0;
     int ret = SSL_write( m_ssl, pBuf, len );
     if ( ret > 0 )
     {
@@ -144,6 +140,70 @@ int SSLConnection::write( const char * pBuf, int len )
         m_iWant = LAST_WRITE;
         return checkError( ret );
     }
+}
+
+
+int SSLConnection::writev( const struct iovec * vect, int count, int *finished )
+{
+    int ret = 0;
+
+    const struct iovec * pEnd = vect + count;
+    const char * pBuf;
+    int bufSize;
+    int written;
+
+    char * pBufEnd;
+    char * pCurEnd;
+    char achBuf[4096];
+    pBufEnd = achBuf + 4096;
+    pCurEnd = achBuf;
+    for( ; vect < pEnd ;  )
+    {
+        pBuf =( const char *) vect->iov_base;
+        bufSize = vect->iov_len;
+        if ( bufSize < 1024 )
+        {
+            if ( pBufEnd - pCurEnd > bufSize )
+            {
+                memmove( pCurEnd, pBuf, bufSize );
+                pCurEnd += bufSize;
+                ++vect;
+                if ( vect < pEnd )
+                    continue;
+            }
+            pBuf = achBuf;
+            bufSize = pCurEnd - pBuf;
+            pCurEnd = achBuf;
+        }
+        else if ( pCurEnd != achBuf )
+        {
+            pBuf = achBuf;
+            bufSize = pCurEnd - pBuf;
+            pCurEnd = achBuf;
+        }
+        else
+            ++vect;
+        written = write( pBuf, bufSize );
+        if ( written > 0 )
+        {
+            ret += written;
+            if ( written < bufSize )
+            {
+                break;
+            }
+        }
+        else if ( !written )
+        {
+            break;
+        }
+        else 
+        {
+            return -1;
+        }
+    }
+    if ( finished )
+        *finished = ( vect == pEnd );
+    return ret;
 }
 
 int SSLConnection::flush()
@@ -213,7 +273,6 @@ int SSLConnection::accept()
 int SSLConnection::checkError( int ret)
 {
     int err = SSL_get_error( m_ssl, ret );
-    //printf( "SSLError:%s\n", SSLError(err).what() );
     switch( err )
     {
     case SSL_ERROR_WANT_READ:
@@ -226,6 +285,7 @@ int SSLConnection::checkError( int ret)
         return 0;
     default:
         errno = EIO;
+        //printf( "SSLError:%s\n", SSLError(err).what() );
     }
     return -1;
 }
@@ -328,3 +388,14 @@ int SSLConnection::buildVerifyErrorString( char * pBuf, int len ) const
     return snprintf( pBuf, len, "FAILED: %s", X509_verify_cert_error_string(
                         SSL_get_verify_result( m_ssl )) );
 }
+
+int SSLConnection::setTlsExtHostName( const char * pName )
+{
+    if ( pName )
+    {
+        return SSL_set_tlsext_host_name( m_ssl, pName );
+    }
+    return  0;
+}
+
+

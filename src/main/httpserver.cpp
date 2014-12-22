@@ -68,8 +68,6 @@
 #include <sslpp/sslcontext.h>
 #include <sslpp/sslerror.h>
 
-#include <sslpp/sslengine.h>
-
 #include <util/accesscontrol.h>
 #include <util/autostr.h>
 #include <util/gpath.h>
@@ -1702,14 +1700,6 @@ int HttpServerImpl::configTuning( const XmlNode *pRoot)
     if ( val )
         FileCacheDataEx::setMaxMMapCacheSize( 0 );
 
-    const char *pValue = pNode->getChildValue( "SSLCryptoDevice" );
-
-    if ( SSLEngine::init( pValue ) == -1 )
-    {
-        currentCtx.log_warn( "Failed to initialize SSL Accelerator Device: %s,"
-                             " SSL hardware acceleration is disabled!", pValue );
-    }
-
     // GZIP compression
     config.setGzipCompress( currentCtx.getLongValue( pNode, "enableGzipCompress",
                             0, 1, 0 ) );
@@ -1730,7 +1720,7 @@ int HttpServerImpl::configTuning( const XmlNode *pRoot)
     int etag = currentCtx.getLongValue( pNode, "fileETag", 0, 4+8+16, 4+8+16 );
     HttpServer::getInstance().getServerContext().setFileEtag( etag );
     
-    pValue = pNode->getChildValue( "gzipCacheDir" );
+    const char *pValue = pNode->getChildValue( "gzipCacheDir" );
 
     if ( !pValue )
     {
