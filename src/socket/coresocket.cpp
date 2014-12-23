@@ -127,7 +127,8 @@ int CoreSocket::bind( const GSockAddr& server, int type, int *fd )
         return errno;
     int flag = 1;
     if(setsockopt( *fd, SOL_SOCKET, SO_REUSEADDR,
-                (char *)( &flag ), sizeof(flag)) == 0)
+                (char *)( &flag ), sizeof(flag)) == 0 && setsockopt( *fd, SOL_SOCKET, SO_REUSEPORT,
+                                                                        (char *)( &flag ), sizeof(flag)) == 0)
     {
         ret = ::bind( *fd, server.get(), server.len());
         if ( !ret )
