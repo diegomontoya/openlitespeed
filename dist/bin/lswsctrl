@@ -20,12 +20,6 @@ if [ ! -x "$BASE_DIR"/"$EXECUTABLE" ]; then
     echo "[ERROR] Cannot find $BASE_DIR/$EXECUTABLE"
     exit 1
 fi
-SYS_NAME=`uname -s`
-if [ "x$SYS_NAME" = "xFreeBSD" ] || [ "x$SYS_NAME" = "xDarwin" ] ; then
-    PS_CMD="ps -ax"
-else
-    PS_CMD="ps -ef"
-fi
 
 test_running()
 {
@@ -76,14 +70,10 @@ start()
 
 stop()
 {
-    killwatch
     kill -USR2 $PID
     kill $PID
     ret=$?
     if  [ $ret -eq 0 ]; then
-#    if [ -f $PIDFILE ]; then
-#        sleep 1
-#    fi
         echo "[OK] $DESC: stopped."
     else
         echo "[ERROR] can not kill $DESC"
@@ -103,16 +93,6 @@ do_restart()
         fi
     else
         start
-    fi
-}
-
-log7080()
-{
-    if [ "x$SYS_NAME" = "xLinux" ]; then
-        echo "checking port 7080 usage with netstat" >> $RESTART_LOG
-        netstat -anp | grep 7080 >> $RESTART_LOG
-        echo "checking port 7080 usage with lsof" >> $RESTART_LOG
-        lsof -i TCP:7080 >> $RESTART_LOG
     fi
 }
 
@@ -151,11 +131,9 @@ restart()
     if [ $RUNNING -eq 0 ]; then
 
         echo "LSWS does not restart properly, check port 7080" >> $RESTART_LOG
-        #log7080
         killall -9 $EXECUTABLE
         sleep 1
         echo "check port 7080 after kill all $EXECUTABLE processes " >> $RESTART_LOG
-        #log7080
         start
     fi
         
