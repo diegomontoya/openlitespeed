@@ -241,7 +241,7 @@ int SSLContext::init( int iMethod )
 
         //increase defaults
 //	    setSessionCacheMode( SSL_SESS_CACHE_SERVER | SSL_SESS_CACHE_NO_AUTO_CLEAR);
-//	    setSessionTimeout( 100800 );
+	    setSessionTimeout( 100800 );
 //        setSessionCacheSize ( 0 );
 
         setSessionCacheMode( SSL_SESS_CACHE_OFF );
@@ -255,7 +255,7 @@ int SSLContext::init( int iMethod )
             setOptions( SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION );
             SSL_CTX_set_info_callback( m_pCtx, SSLConnection_ssl_info_cb );
         }
-        //initECDH();
+
 
         return 0;
     }
