@@ -10,10 +10,6 @@ PROG="$0"
 PIDFILE=/tmp/lshttpd/lshttpd.pid
 GRACEFUL_PIDFILE=/tmp/lshttpd/graceful.pid
 
-#if [ -d "/usr/local/cpanel" ]; then 
-#    WSWATCH=1
-#fi
-
 EXECUTABLE=litespeed
 DESC="litespeed"
 BASE_DIR=`dirname "$PROG"`
@@ -52,19 +48,9 @@ fi
 
 ret=0
 
-killwatch()
-{
-        WATCH_PROCS=`$PS_CMD | grep wswatch.sh | grep -v grep | wc -l`
-        if [ $WATCH_PROCS -gt 0 ]; then
-                killall wswatch.sh
-        fi
-}
-
-
 start()
 {
 
-    killwatch
     if [ -f "$PIDFILE" ]; then
         PID=`cat $PIDFILE`
     else
@@ -74,7 +60,6 @@ start()
     ./$EXECUTABLE
     ret=$?
 
-
     if [ $ret -eq 0 ]; then
         NEW_PID=`cat $PIDFILE`
         if [ "x$NEW_PID" = "x$PID" ] || [ "x$NEW_PID" = "x" ]; then
@@ -83,9 +68,6 @@ start()
         fi
         echo "[OK] $DESC: pid=$NEW_PID."
         test_running
-        if [ "x$WSWATCH" = "x1" ]; then
-            ./wswatch.sh &
-        fi
     else
         echo "[ERROR] Failed to start $DESC!"
     fi
@@ -260,4 +242,3 @@ case "$1" in
         ;;
 esac
 exit $ret
-
