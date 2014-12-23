@@ -1371,13 +1371,13 @@ int LshttpdMain::guardCrash()
                         }
                         else if ( ret > 0 )  { //parent proces with ret = pid
                             //TODO set affinity and bind to a specific CPU so we don't bounce around....
-                            cpu_set_t mask;
-                              unsigned int len = sizeof(mask);
-                              CPU_ZERO(&mask);
-                              CPU_SET(m_curChildren,&mask);
-                              sched_setaffinity(ret, len, &mask);
-
-                              LOG_NOTICE(("set child [%d] to affinity value: [%d]",ret, m_curChildren));
+//                            cpu_set_t mask;
+//                            unsigned int len = sizeof(mask);
+//                            CPU_ZERO(&mask);
+//                            CPU_SET(m_curChildren,&mask);
+//                            sched_setaffinity(ret, len, &mask);
+//
+//                            LOG_NOTICE(("set child [%d] to affinity value: [%d]",ret, m_curChildren));
 
                         }
                         else if ( ret == -1 )
